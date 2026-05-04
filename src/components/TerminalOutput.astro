@@ -1,0 +1,16 @@
+---
+export interface Props {
+  content: string;
+  alt?: string;
+}
+const { content } = Astro.props;
+---
+
+<div class="bg-surface border border-border rounded-lg overflow-hidden font-mono text-sm">
+  <div class="bg-bg border-b border-border px-3 py-1.5 flex gap-1.5">
+    <span class="w-2.5 h-2.5 rounded-full bg-red-500/60"></span>
+    <span class="w-2.5 h-2.5 rounded-full bg-yellow-500/60"></span>
+    <span class="w-2.5 h-2.5 rounded-full bg-green-500/60"></span>
+  </div>
+  <pre class="p-4 text-text overflow-x-auto whitespace-pre">{content}</pre>
+</div>

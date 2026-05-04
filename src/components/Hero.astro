@@ -1,0 +1,59 @@
+---
+import TerminalOutput from './TerminalOutput.astro';
+
+export interface Props {
+  hero: {
+    type: 'iframe' | 'screencast' | 'terminal' | 'gif' | 'image' | 'github-og';
+    src?: string;
+    alt: string;
+    content?: string;
+    note?: string;
+  };
+}
+
+const { hero } = Astro.props;
+---
+
+<div class="relative aspect-video bg-surface border border-border rounded-lg overflow-hidden">
+  {hero.type === 'iframe' && hero.src && (
+    <iframe
+      src={hero.src}
+      title={hero.alt}
+      loading="lazy"
+      class="w-full h-full border-0"
+      sandbox="allow-scripts allow-same-origin"
+    />
+  )}
+  {hero.type === 'screencast' && hero.src && (
+    <video
+      src={hero.src}
+      autoplay muted loop playsinline
+      class="w-full h-full object-cover"
+      aria-label={hero.alt}
+    />
+  )}
+  {hero.type === 'terminal' && hero.content && (
+    <div class="p-4 h-full overflow-auto">
+      <TerminalOutput content={hero.content} alt={hero.alt} />
+    </div>
+  )}
+  {hero.type === 'gif' && hero.src && (
+    <img src={hero.src} alt={hero.alt} loading="lazy" class="w-full h-full object-cover" />
+  )}
+  {hero.type === 'image' && hero.src && (
+    <img src={hero.src} alt={hero.alt} loading="lazy" class="w-full h-full object-cover" />
+  )}
+  {hero.type === 'github-og' && hero.src && (
+    <img
+      src={`https://opengraph.githubassets.com/HEAD/${hero.src}`}
+      alt={hero.alt}
+      loading="lazy"
+      class="w-full h-full object-cover"
+    />
+  )}
+  {hero.note && (
+    <div class="absolute bottom-3 left-3 px-2 py-1 bg-bg/80 border border-border rounded text-xs text-text-muted font-mono">
+      {hero.note}
+    </div>
+  )}
+</div>
