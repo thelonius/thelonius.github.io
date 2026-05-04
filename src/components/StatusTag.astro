@@ -1,0 +1,22 @@
+---
+export interface Props {
+  status: 'shipped' | 'production' | 'demo' | 'live' | 'open-source';
+  year?: number;
+}
+
+const { status, year } = Astro.props;
+
+const colourMap = {
+  shipped: 'text-success',
+  production: 'text-success',
+  demo: 'text-success',
+  live: 'text-success',
+  'open-source': 'text-warn',
+};
+
+const label = status.toUpperCase().replace('-', '-');
+---
+
+<span class={`font-mono text-xs ${colourMap[status]}`}>
+  {year && <span class="text-text-muted">{year} · </span>}{label}
+</span>

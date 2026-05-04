@@ -1,6 +1,7 @@
 ---
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import StatusTag from '../../components/StatusTag.astro';
 
 export async function getStaticPaths() {
   const projects = await getCollection('projects');
@@ -26,7 +27,10 @@ const { Content } = await render(project);
     <a href="/" class="text-text-muted hover:text-accent">← back</a>
     <h1 class="text-3xl font-semibold mt-4">{project.data.title}</h1>
     <p class="text-text-muted mt-1">{project.data.tagline}</p>
-    <p class="text-text-muted text-sm mt-1">{project.data.period} · {project.data.status}</p>
+    <div class="flex gap-3 items-baseline mt-1">
+      <span class="text-text-muted text-sm">{project.data.period}</span>
+      <StatusTag status={project.data.status} year={project.data.year} />
+    </div>
     <article class="prose prose-invert mt-8">
       <Content />
     </article>
