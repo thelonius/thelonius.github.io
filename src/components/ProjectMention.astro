@@ -1,0 +1,18 @@
+---
+import StackList from './StackList.astro';
+
+export interface Props {
+  project: any;
+}
+const { project } = Astro.props;
+const { data } = project;
+---
+
+<div class="border-l-2 border-border pl-4 py-2">
+  <p class="text-text text-sm leading-relaxed">
+    <strong>{data.title}</strong> — {data.tagline}
+  </p>
+  <div class="mt-2">
+    <StackList stack={data.stack.slice(0, 6)} />
+  </div>
+</div>

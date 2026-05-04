@@ -1,0 +1,37 @@
+---
+import StatusTag from './StatusTag.astro';
+import StackList from './StackList.astro';
+
+export interface Props {
+  project: any; // CollectionEntry<'projects'>
+}
+const { project } = Astro.props;
+const { data } = project;
+---
+
+<a
+  href={`/projects/${data.slug}`}
+  class="block border border-border bg-surface rounded-lg p-5 hover:border-accent transition-colors"
+>
+  <div class="flex justify-between items-start gap-4">
+    <div class="min-w-0">
+      <div class="font-semibold text-accent">
+        {data.title} <span class="text-text-muted">→</span>
+      </div>
+      <div class="text-text-muted text-xs mt-0.5">{data.tagline}</div>
+    </div>
+    <StatusTag status={data.status} year={data.year} />
+  </div>
+
+  {data.keyMetric && (
+    <div class="font-mono text-xs text-accent mt-3">
+      {data.keyMetric}
+    </div>
+  )}
+
+  <p class="text-text text-sm mt-3 leading-relaxed">{data.description}</p>
+
+  <div class="mt-4">
+    <StackList stack={data.stack.slice(0, 7)} />
+  </div>
+</a>

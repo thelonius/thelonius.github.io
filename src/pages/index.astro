@@ -1,13 +1,149 @@
 ---
+import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import HomeHero from '../components/HomeHero.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import ProjectMention from '../components/ProjectMention.astro';
+
+const all = await getCollection('projects');
+const featured = all.filter(p => p.data.featured).sort((a, b) => a.data.order - b.data.order);
+const deep = featured.filter(p => p.data.deep);
+const mentions = featured.filter(p => !p.data.deep);
 ---
 
 <BaseLayout
   title="Ed Dubnitsky — AI/ML Engineer"
-  description="AI/ML Engineer building production RAG, computer vision, and multi-provider LLM pipelines. Portfolio with 5 in-depth case studies."
+  description="AI/ML Engineer building production RAG, computer vision, and multi-provider LLM pipelines. Five in-depth case studies."
 >
-  <main class="max-w-content mx-auto p-8">
-    <h1 class="text-3xl font-semibold text-accent">Hello, dark mode</h1>
-    <p class="text-text-muted mt-4">BaseLayout works.</p>
-  </main>
+  <HomeHero />
+
+  <section id="projects" class="max-w-content mx-auto px-6 py-12">
+    <p class="font-mono text-xs text-accent uppercase tracking-widest">Projects</p>
+    <h2 class="text-2xl font-semibold mt-1">Selected work</h2>
+
+    <div class="mt-8 flex flex-col gap-3">
+      {deep.map(project => <ProjectCard project={project} />)}
+    </div>
+
+    {mentions.length > 0 && (
+      <div class="mt-10">
+        <p class="font-mono text-xs text-text-muted uppercase tracking-widest mb-3">Also</p>
+        <div class="flex flex-col gap-2">
+          {mentions.map(project => <ProjectMention project={project} />)}
+        </div>
+      </div>
+    )}
+  </section>
+
+  <section id="about" class="max-w-content mx-auto px-6 py-12">
+    <p class="font-mono text-xs text-accent uppercase tracking-widest">About</p>
+    <h2 class="text-2xl font-semibold mt-1">12 years shipping software, past year fully on AI</h2>
+
+    <div class="mt-6 prose prose-invert max-w-none
+                prose-p:text-text prose-strong:text-text
+                prose-a:text-accent prose-a:no-underline hover:prose-a:underline">
+      <p>
+        I started with Vue and React, pivoted a year ago to AI/ML — not as a buzzword, as a
+        full reorientation. Now I build the plumbing that turns LLMs and computer-vision
+        models from toys into reliable services.
+      </p>
+      <p>What I focus on:</p>
+      <ul>
+        <li><strong>RAG and LLM pipelines in production</strong> — intent parsing, semantic retrieval, explainable re-ranking</li>
+        <li><strong>Vector search with Qdrant</strong> — HNSW tuning, hybrid filters, named vectors for multimodal</li>
+        <li><strong>Computer Vision in production</strong> — depth estimation (MiDaS / PyTorch), Structure-from-Motion, 3D mesh segmentation</li>
+        <li><strong>Cost-aware engineering</strong> — every LLM call counted in $ real plus shadow counterfactuals across providers</li>
+        <li><strong>Evaluation harnesses as CI gates</strong> — precision@K, recall@K, MRR, cost, latency in diff-friendly Markdown</li>
+        <li><strong>Multi-provider abstraction</strong> — one client interface, env-flag swap between Ollama / NIM / OpenAI / Groq</li>
+        <li><strong>AI-augmented coding</strong> — production-grade prototypes in days, not months</li>
+      </ul>
+      <p>
+        Comfortable saying what I don't know. Kubeflow, Triton, multi-node inference — growing
+        into them, not yet shipped them. In the right team I'd grow there with the work.
+      </p>
+    </div>
+  </section>
+
+  <section id="experience" class="max-w-content mx-auto px-6 py-12">
+    <p class="font-mono text-xs text-accent uppercase tracking-widest">Experience</p>
+    <h2 class="text-2xl font-semibold mt-1">Where I've worked</h2>
+
+    <ul class="mt-6 font-mono text-sm flex flex-col gap-2">
+      <li class="flex gap-4">
+        <span class="text-text-muted w-32 shrink-0">2023 — now</span>
+        <span class="text-text">AI/ML Engineer · Pandora Software Consulting Ltd</span>
+      </li>
+      <li class="flex gap-4">
+        <span class="text-text-muted w-32 shrink-0">2021 — now</span>
+        <span class="text-text">Senior Full-Stack Engineer · radian (parallel)</span>
+      </li>
+      <li class="flex gap-4">
+        <span class="text-text-muted w-32 shrink-0">2019 — 2022</span>
+        <span class="text-text">Frontend Developer · MediaMarktSaturn</span>
+      </li>
+    </ul>
+  </section>
+
+  <section id="skills" class="max-w-content mx-auto px-6 py-12">
+    <p class="font-mono text-xs text-accent uppercase tracking-widest">Skills</p>
+    <h2 class="text-2xl font-semibold mt-1">What I work with</h2>
+
+    <dl class="mt-6 grid gap-y-4 text-sm">
+      <div class="grid grid-cols-[140px_1fr] gap-4">
+        <dt class="text-text-muted font-mono">AI / ML</dt>
+        <dd class="font-mono text-text">Python · PyTorch · Transformers · OpenCV · RAG · Qdrant · OpenAI · Claude · NVIDIA NIM · Ollama · Groq · embeddings · semantic search</dd>
+      </div>
+      <div class="grid grid-cols-[140px_1fr] gap-4">
+        <dt class="text-text-muted font-mono">Backend</dt>
+        <dd class="font-mono text-text">FastAPI · asyncio · Pydantic · Celery · Flask · Django · REST · WebSocket · SSE</dd>
+      </div>
+      <div class="grid grid-cols-[140px_1fr] gap-4">
+        <dt class="text-text-muted font-mono">Data / Infra</dt>
+        <dd class="font-mono text-text">PostgreSQL · MySQL · Redis · Docker · Prometheus · nginx · Linux · GitHub Actions</dd>
+      </div>
+      <div class="grid grid-cols-[140px_1fr] gap-4">
+        <dt class="text-text-muted font-mono">Frontend</dt>
+        <dd class="font-mono text-text">React · TypeScript · Next.js · Vue · Nuxt · Three.js · Preact · Astro</dd>
+      </div>
+      <div class="grid grid-cols-[140px_1fr] gap-4">
+        <dt class="text-text-muted font-mono">Quality</dt>
+        <dd class="font-mono text-text">pytest · mypy · ruff · evaluation harnesses · ADRs · structured logging</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section id="contact" class="max-w-content mx-auto px-6 py-12">
+    <p class="font-mono text-xs text-accent uppercase tracking-widest">Contact</p>
+    <h2 class="text-2xl font-semibold mt-1">Reach me</h2>
+
+    <ul class="mt-6 font-mono text-sm flex flex-col gap-2">
+      <li class="flex gap-4">
+        <span class="text-text-muted w-24 shrink-0">Telegram</span>
+        <a class="text-accent hover:underline" href="https://t.me/edubnitsky">@edubnitsky</a>
+      </li>
+      <li class="flex gap-4">
+        <span class="text-text-muted w-24 shrink-0">Email</span>
+        <a class="text-accent hover:underline" href="mailto:dubnitsky@gmail.com">dubnitsky@gmail.com</a>
+      </li>
+      <li class="flex gap-4">
+        <span class="text-text-muted w-24 shrink-0">GitHub</span>
+        <a class="text-accent hover:underline" href="https://github.com/thelonius">github.com/thelonius</a>
+      </li>
+      <li class="flex gap-4">
+        <span class="text-text-muted w-24 shrink-0">LinkedIn</span>
+        <a class="text-accent hover:underline" href="https://www.linkedin.com/in/eduard-dubnitsky-baa2771a/">linkedin.com/in/eduard-dubnitsky</a>
+      </li>
+      <li class="flex gap-4">
+        <span class="text-text-muted w-24 shrink-0">Resume</span>
+        <a class="text-accent hover:underline" href="/ed-dubnitsky-cv.pdf" download>↓ ed-dubnitsky-cv.pdf</a>
+      </li>
+    </ul>
+  </section>
+
+  <footer class="max-w-content mx-auto px-6 py-12 border-t border-border mt-12">
+    <p class="text-text-muted text-xs font-mono">
+      Built with Astro · source-viewable on
+      <a class="text-accent hover:underline" href="https://github.com/thelonius/thelonius.github.io">GitHub</a>
+    </p>
+  </footer>
 </BaseLayout>
