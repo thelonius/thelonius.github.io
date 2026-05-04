@@ -1,0 +1,29 @@
+---
+export interface Props {
+  links: Array<{ label: string; url: string; kind: 'repo' | 'demo' | 'adr' | 'article' | 'video' }>;
+}
+const { links } = Astro.props;
+
+const iconMap = {
+  repo: '⌥',
+  demo: '↗',
+  adr: '§',
+  article: '¶',
+  video: '▶',
+};
+---
+
+<ul class="flex flex-col gap-2">
+  {links.map(l => (
+    <li>
+      <a
+        href={l.url}
+        target="_blank" rel="noopener"
+        class="inline-flex items-center gap-2 text-accent hover:underline"
+      >
+        <span class="font-mono text-text-muted">{iconMap[l.kind]}</span>
+        {l.label}
+      </a>
+    </li>
+  ))}
+</ul>

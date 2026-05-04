@@ -1,0 +1,17 @@
+---
+export interface Props {
+  metrics: Array<{ label: string; value: string; hint?: string }>;
+}
+const { metrics } = Astro.props;
+---
+
+<table class="w-full text-sm border-separate border-spacing-y-1">
+  <tbody>
+    {metrics.map(m => (
+      <tr>
+        <td class="text-text-muted pr-4 align-top">{m.label}</td>
+        <td class="font-mono text-text">{m.value}{m.hint && <span class="text-text-muted ml-2">— {m.hint}</span>}</td>
+      </tr>
+    ))}
+  </tbody>
+</table>

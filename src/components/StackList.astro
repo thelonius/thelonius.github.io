@@ -1,0 +1,14 @@
+---
+export interface Props {
+  stack: string[];
+}
+const { stack } = Astro.props;
+---
+
+<div class="flex flex-wrap gap-2">
+  {stack.map(item => (
+    <span class="font-mono text-xs px-2 py-1 bg-surface border border-border rounded text-text-muted">
+      {item}
+    </span>
+  ))}
+</div>
