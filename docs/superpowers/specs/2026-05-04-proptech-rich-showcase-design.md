@@ -211,3 +211,92 @@ proptech-semantic-search/                   (separate repo, parallel work)
 │       ├── 2026-05-04-baseline-nim.json    (new)
 │       └── 2026-05-04-baseline-openai.json (new)
 ```
+
+---
+
+## Appendix B — data file shapes
+
+These are the shared contracts between data-runner and the visual subagents. Component builders stub against these shapes; data-runner produces the real values.
+
+**`hero-queries.json`**
+
+```jsonc
+{
+  "run_id": "2026-05-04-baseline",
+  "captured_at": "2026-05-04T11:32:00Z",
+  "queries": [
+    {
+      "id": "family_with_pool",
+      "query": "Family with two kids looking for a house with swimming pool and garden",
+      "provider": "nim",
+      "duration_ms": 1640,
+      "cost_usd": 0.000040,
+      "shadow_cost_openai_usd": 0.000127,
+      "shadow_cost_nim_usd": 0.000040,
+      "results": [
+        {
+          "id": "listing_4711",
+          "score": 0.93,
+          "title": "3-bedroom house with private pool, fenced garden",
+          "explanation": "Quiet residential street, fenced garden, proximity to a primary school"
+        }
+        // up to 3 results
+      ]
+    }
+    // up to 5 queries
+  ]
+}
+```
+
+**`provider-showdown.json`**
+
+```jsonc
+{
+  "run_id": "2026-05-04-baseline",
+  "workload": "5 queries × 3 providers, same prompts, same retrieval",
+  "providers": [
+    {
+      "name": "ollama",
+      "model": "qwen3.5:9b",
+      "mean_cost_usd": 0.0,
+      "p50_latency_ms": 38000,
+      "p95_latency_ms": 52000,
+      "note": "local, free; M1 Pro"
+    },
+    {
+      "name": "nim",
+      "model": "<from .env>",
+      "mean_cost_usd": 0.000041,
+      "p50_latency_ms": 1640,
+      "p95_latency_ms": 2100
+    },
+    {
+      "name": "openai",
+      "model": "<from .env>",
+      "mean_cost_usd": 0.000127,
+      "p50_latency_ms": 1820,
+      "p95_latency_ms": 2400
+    }
+  ]
+}
+```
+
+**`eval-diff.md`**
+
+A markdown fragment shaped like a CI report from a hypothetical PR. The component renders it with diff-aware styling (`+` lines green, `-` lines red, `=` lines neutral). Example body:
+
+```
+=  Eval run: 2026-05-04-baseline → 2026-05-04-feature-rerank-v2
+=
+=  Query                          precision@1   MRR     Δ
+-  family_with_pool                    1.00     1.00
++  family_with_pool                    0.00     0.50    ❌ regression
+=  young_professional_modern           1.00     1.00
+=  remote_worker_quiet                 1.00     1.00
++  dog_owner_yard                      1.00     0.67    ✓
++  elderly_parents_quiet               1.00     1.00
+=
++  CI gate: precision@1 dropped on family_with_pool. Blocking merge.
+```
+
+The component takes a `caption` prop. The page passes an honest-by-default caption: "Illustrative CI report. The baseline numbers (left column) are from the real 2026-05-04 run; the regression branch is fabricated to show what the gate would print." This keeps the artefact useful without claiming a regression that never happened.
