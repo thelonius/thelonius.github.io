@@ -4,10 +4,12 @@ import ShowcaseLayout from '../../layouts/ShowcaseLayout.astro';
 
 export async function getStaticPaths() {
   const projects = await getCollection('projects');
-  return projects.map((project) => ({
-    params: { slug: project.data.slug },
-    props: { project },
-  }));
+  return projects
+    .filter(p => p.data.deep)
+    .map((project) => ({
+      params: { slug: project.data.slug },
+      props: { project },
+    }));
 }
 
 interface Props {
