@@ -42,7 +42,12 @@ Stub.
 
 ## Architecture
 
-Stub.
+```mermaid
+graph LR
+  scan[3D scan] --> seg[MeshSegNet inference]
+  seg --> store[(MySQL)]
+  store --> spa[React + r3f]
+```
 
 ## Metrics
 
