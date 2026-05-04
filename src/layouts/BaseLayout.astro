@@ -37,5 +37,14 @@ const canonicalURL = url || Astro.url.toString();
 </head>
 <body class="bg-bg text-text font-sans">
   <slot />
+  <!--
+    GoatCounter analytics. Sign up at https://goatcounter.com (free tier),
+    register code "eddubnitsky" (or your choice), then update the data-goatcounter URL.
+    Privacy-first: no cookies, no GDPR exposure, ~1 KB JS.
+  -->
+  <script
+    data-goatcounter="https://eddubnitsky.goatcounter.com/count"
+    async src="//gc.zgo.at/count.js"
+  ></script>
 </body>
 </html>
