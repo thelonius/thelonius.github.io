@@ -6,6 +6,9 @@ import mermaid from 'astro-mermaid';
 // https://astro.build/config
 export default defineConfig({
   site: 'https://thelonius.github.io',
+  // Disable the floating dev-mode toolbar — it overlaps content on tablet
+  // viewports during preview shares. Production builds never include it.
+  devToolbar: { enabled: false },
   integrations: [
     mermaid({
       // 'base' theme lets themeVariables take full control

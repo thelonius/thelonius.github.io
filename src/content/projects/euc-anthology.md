@@ -79,17 +79,3 @@ graph LR
 
 Preact instead of React keeps the bundle small (~1.35 MB total, 440 KB gzipped). Simulator components are reusable — the FOC simulator from chapter 8 also drives the field-weakening visualisation in chapter 10. No backend, deployed automatically through GitHub Actions on push to `main`.
 
-## Metrics
-
-14 chapters end-to-end, ~440 KB gzipped (fits comfortably in a 4G page-load budget), zero backend. Reverse target was the Begode ET Max (STM32F405) firmware decompiled in Ghidra with real address citations on every code excerpt. RU → EN translation is in progress; once English ships, the showcase hero swaps from a GitHub OG card to a live iframe of the book itself.
-
-## Stack
-
-Reverse: Ghidra (firmware decompilation), STM32 firmware analysis, FOC math from PMSM literature.
-Frontend: Preact, Vite, ECharts (graphs), Canvas 2D (custom simulators).
-Math: FOC vector math (Clarke/Park), complementary filter, two-mass thermal model.
-Deploy: GitHub Actions, GitHub Pages.
-
-## Links
-
-The live link below is the Russian version. The English translation is in progress and will land at the same URL.

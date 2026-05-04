@@ -64,23 +64,8 @@ graph LR
   celery --> meshseg[MeshSegNet PyTorch inference]
   meshseg --> store[(MySQL)]
   store --> spa[React + r3f WebGL editor]
-  scan -.demo mode.-> json[/cases/&lt;id&gt;.json] --> spa
+  scan -.demo mode.-> json["/cases/{id}.json"] --> spa
 ```
 
 The split between dev (full stack) and demo (static JSON) means the GitHub Pages deployment runs with zero backend — fast, free, and survives any traffic spike. The architecture is symmetrical: same React front talks to either a live API or pre-baked JSON.
 
-## Metrics
-
-See the table at the bottom of this section for the headline numbers. The 30× speed-up on planning is measured against current technician timings on identical demo cases — same jaw, same target positions, just the mechanical work shifted to ML preprocessing and the UI gizmo.
-
-## Stack
-
-Backend: Python 3.11, FastAPI, Celery, Redis, MySQL, SQLAlchemy.
-ML: PyTorch, MeshSegNet (pretrained, offline inference).
-Mesh: trimesh, fast-simplification, scipy, numpy.
-Frontend: React 18, TypeScript, Vite, Three.js (react-three-fiber, drei), zustand.
-Infra: Docker Compose, GitHub Pages.
-
-## Links
-
-Live demo and source code below — the demo runs the full WebGL editor in your browser, no backend needed.

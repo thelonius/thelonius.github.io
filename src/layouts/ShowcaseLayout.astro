@@ -60,18 +60,17 @@ const sections = [
       <slot />
 
       {project.data.metrics && project.data.metrics.length > 0 && (
-        <section id="metrics-table" class="mt-8">
+        <>
+          <h2 id="metrics">Metrics</h2>
           <MetricsTable metrics={project.data.metrics} />
-        </section>
+        </>
       )}
 
-      <section id="stack-list" class="mt-8">
-        <StackList stack={project.data.stack} />
-      </section>
+      <h2 id="stack">Stack</h2>
+      <StackList stack={project.data.stack} />
 
-      <section id="links-list" class="mt-8">
-        <LinksList links={project.data.links} />
-      </section>
+      <h2 id="links">Links</h2>
+      <LinksList links={project.data.links} />
     </article>
   </div>
 </BaseLayout>

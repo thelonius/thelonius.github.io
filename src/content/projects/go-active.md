@@ -6,10 +6,20 @@ period: Apr 2025 — present · production
 status: production
 year: 2025
 hero:
-  type: github-og
-  src: thelonius/go-active
-  alt: Go-Active GitHub repository preview
-  note: GIF walkthrough coming — capture from Telegram Mini App on phone
+  type: terminal
+  alt: Go-Active Telegram Mini App entry point
+  content: |
+    Open Telegram
+
+      → @vixwbot
+
+    A 5-stage async FastAPI pipeline behind
+    a Mini App. GPX in → cinematic 3D video
+    out, with CV quality scoring on every
+    stage.
+
+      [ open in Telegram ]
+  note: GIF walkthrough from the Mini App on phone — coming soon
 keyMetric: 5-stage CV pipeline · 15+ quality metrics
 stack:
   - Python
@@ -31,9 +41,9 @@ metrics:
     value: production
     hint: Telegram Mini App with real users
 links:
-  - label: GitHub
-    url: https://github.com/thelonius/go-active
-    kind: repo
+  - label: Open in Telegram
+    url: https://t.me/vixwbot
+    kind: demo
 featured: true
 deep: true
 order: 4
@@ -75,18 +85,3 @@ graph LR
 
 Each stage is a separate async task with its own timeout and memory budget. If stage 4 rejects the track (low quality grade), we skip rendering and respond with the diagnostic — saving compute and giving the user actionable feedback.
 
-## Metrics
-
-Five pipeline stages, 15+ CV quality models in production, used by real users in a Telegram Mini App. Memory monitoring per stage means the pipeline survives oversized GPX uploads without OOM crashes that would otherwise kill the whole worker process.
-
-## Stack
-
-Backend: Python, PyTorch, OpenCV, FastAPI, Pydantic.
-CV: MiDaS depth estimation, Structure-from-Motion, custom quality heads.
-Frontend: React, TypeScript, CesiumJS (3D map renderer).
-Infra: Docker, FFmpeg, Telegram Bot API.
-Quality: NumPy, SciPy, Pandas, mypy, ruff, pytest.
-
-## Links
-
-Source on GitHub. The Telegram bot link is private to the company — open the repo for architecture details.

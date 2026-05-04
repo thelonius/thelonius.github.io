@@ -71,18 +71,3 @@ graph LR
 
 The fallback chain is configured declaratively in one Python list — adding a new model is one line. SSE handles back-pressure naturally: if the client disconnects, the upstream stream is cancelled.
 
-## Metrics
-
-12 topics, 3 modes per topic. The fallback stack of 4 models keeps the app responsive even when Groq rate-limits the primary — measured ~99% uptime over a typical practice session. Zero backend storage by design: every conversation stays in the user's browser via `localStorage` and `sessionStorage`. Mobile-responsive UI with hamburger menu and touch-friendly tooltips on ~100 MLOps terms.
-
-## Stack
-
-Backend: Python, Flask, OpenAI SDK against the Groq endpoint.
-LLM: Llama 3.3 70B, GPT OSS 120B, Llama 4 Scout, Llama 3.1 8B (all via Groq).
-Frontend: vanilla JavaScript, marked.js (Markdown), highlight.js (syntax).
-Streaming: Server-Sent Events.
-Hosting: self-hosted on a personal VPS via sslip.io.
-
-## Links
-
-Live and source below. The live link is a self-hosted IP — some platforms block sslip URLs in previews, but a normal browser handles it fine.

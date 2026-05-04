@@ -99,18 +99,3 @@ graph LR
 
 The provider client is one Python protocol; switching providers is a one-line config change. Vector dimensions are pinned per Qdrant collection, so the embedding-provider routing is sticky to collection — switching the chat provider doesn't accidentally break vector compatibility.
 
-## Metrics
-
-Headline numbers below were measured against a 3-query labelled gold set. The 22× latency difference between NIM and local Qwen3.5:9B reflects M1 MacBook constraints — locally, 9B-parameter models are slow and rate the cost-effectiveness story differently. The 3.2× cost edge over OpenAI is on the identical eval workload with the same prompts.
-
-## Stack
-
-Backend: FastAPI, async, Pydantic.
-Vector: Qdrant — HNSW tuning, hybrid filters, named vectors for multimodal.
-LLM: OpenAI, Anthropic Claude, NVIDIA NIM, Ollama (local for $0 dev).
-Observability: structured JSON logs with request-id correlation, Prometheus counters per layer.
-Quality: pytest, mypy, ruff, evaluation harness, ADRs.
-
-## Links
-
-Source includes the full eval harness, ADR documents, and Docker Compose for local dev.
