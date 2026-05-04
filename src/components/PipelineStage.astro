@@ -1,0 +1,48 @@
+---
+export interface Props {
+  num: number;
+  name: string;
+  what: string;
+  inputLabel: string;
+  inputValue: string;
+  outputLabel: string;
+  outputValue?: string;
+  outputIframe?: string;
+  observation?: string;
+}
+
+const { num, name, what, inputLabel, inputValue, outputLabel, outputValue, outputIframe, observation } = Astro.props;
+---
+
+<article class="border border-border bg-surface rounded-lg p-6 my-4">
+  <header class="flex items-baseline gap-3 mb-3">
+    <span class="font-mono text-3xl text-accent font-semibold">{num}</span>
+    <h3 class="text-xl font-semibold text-text">{name}</h3>
+  </header>
+  <p class="text-text leading-relaxed mb-5">{what}</p>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <p class="font-mono text-xs text-text-muted uppercase tracking-wider mb-2">Input · {inputLabel}</p>
+      <pre class="font-mono text-xs bg-bg border border-border rounded p-3 text-text whitespace-pre-wrap">{inputValue}</pre>
+    </div>
+    <div>
+      <p class="font-mono text-xs text-text-muted uppercase tracking-wider mb-2">Output · {outputLabel}</p>
+      {outputIframe && (
+        <div class="bg-bg border border-border rounded overflow-hidden" style="height: 220px">
+          <iframe src={outputIframe} class="w-full h-full border-0" loading="lazy" title={`${name} output`}></iframe>
+        </div>
+      )}
+      {outputValue && !outputIframe && (
+        <pre class="font-mono text-xs bg-bg border border-border rounded p-3 text-accent whitespace-pre-wrap">{outputValue}</pre>
+      )}
+    </div>
+  </div>
+
+  {observation && (
+    <p class="mt-4 text-sm text-text-muted italic border-l-2 border-accent pl-3">
+      <span class="font-mono uppercase text-xs not-italic mr-2">Observed:</span>
+      {observation}
+    </p>
+  )}
+</article>

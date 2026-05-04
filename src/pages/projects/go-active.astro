@@ -1,0 +1,171 @@
+---
+import { getEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import StatusTag from '../../components/StatusTag.astro';
+import StackList from '../../components/StackList.astro';
+import LinksList from '../../components/LinksList.astro';
+import BeforeAfterSplit from '../../components/BeforeAfterSplit.astro';
+import PipelineStage from '../../components/PipelineStage.astro';
+import MetricsDashboard from '../../components/MetricsDashboard.astro';
+import BuiltBy from '../../components/BuiltBy.astro';
+
+const project = await getEntry('projects', 'go-active');
+if (!project) throw new Error('go-active project not found in content collection');
+const { data } = project;
+---
+
+<BaseLayout
+  title={`${data.title} — Ed Dubnitsky`}
+  description={data.description}
+  ogImagePath={data.slug}
+>
+  <header class="sticky top-0 z-10 bg-bg/90 backdrop-blur border-b border-border">
+    <div class="max-w-5xl mx-auto px-6 py-3 flex items-baseline justify-between">
+      <a href="/" class="text-text-muted hover:text-accent text-sm">← back · {data.title}</a>
+      <StatusTag status={data.status} year={data.year} />
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-6 pt-8 pb-16">
+    <BeforeAfterSplit
+      leftSrc="/assets/go-active/trajectory_2d.html"
+      leftLabel="Raw GPX · top-down"
+      rightSrc="/assets/go-active/trajectory_3d.html"
+      rightLabel="3D terrain-aware"
+      caption="From flat GPS dots to a terrain-aware 3D scene. Same 3025 points, two readings."
+      height="380px"
+    />
+
+    <section class="mt-8">
+      <h1 class="text-4xl font-semibold tracking-tight">{data.title}</h1>
+      <p class="text-text-muted mt-2 text-lg">{data.tagline}</p>
+      <p class="text-text-muted text-sm mt-1 font-mono">{data.period}</p>
+      <p class="text-accent font-mono text-sm mt-3">
+        5-stage CV pipeline · 159 km Архыз–Теберда analysed live below
+      </p>
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-xl font-semibold text-accent mb-3">Problem</h2>
+      <p class="text-text leading-relaxed">
+        GPS tracks recorded by mainstream apps (Strava, Komoot) are useful for the user who recorded them but boring to share — flat maps with a coloured line. To turn a workout into something worth watching, the track has to become a cinematic flythrough with terrain context, and the system has to <strong>reject bad tracks</strong> (sparse points, GPS jitter, broken altitude) before spending render budget on them.
+      </p>
+      <p class="text-text leading-relaxed mt-3">
+        The goal: take a GPX file, score it for renderability, and produce a shareable 3D video — all triggered from a Telegram message.
+      </p>
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-xl font-semibold text-accent mb-2">Process</h2>
+      <p class="text-text-muted text-sm mb-4">Five async stages, each with explicit memory and time budgets. Below: each stage running on the real <code class="font-mono text-accent text-xs">227-arkhyz-teberda-2024.gpx</code>.</p>
+
+      <PipelineStage
+        num={1}
+        name="Parse GPX"
+        what="Read the file, validate timestamps and altitudes, extract one Point per sample. Pass downstream as a typed list — no XML touched again."
+        inputLabel="GPX file blob"
+        inputValue={'name: 227-arkhyz-teberda-2024\nsize: ~280 KB\nformat: GPX 1.1'}
+        outputLabel="3025 Point objects"
+        outputValue={'first: { lat: 43.5604, lon: 41.2851,\n         ele: 1457.1, time: 2025-11-10T09:34:02Z }\nlast:  { lat: 43.5375, lon: 41.3377,\n         ele: 2354.3, time: 2025-11-12T07:44:11Z }'}
+        observation="3025 samples across 46 hours of moving time."
+      />
+
+      <PipelineStage
+        num={2}
+        name="Terrain query"
+        what="Build a bounding box from the trajectory, fetch terrain tiles, attach surface elevation to each Point. Lets us check for impossible-altitude jumps later."
+        inputLabel="bbox"
+        inputValue={'lat: 43.51 → 43.62\nlon: 41.28 → 41.37\nspan: ~12 km × 7 km'}
+        outputLabel="Elevation profile"
+        outputIframe="/assets/go-active/elevation_profile.html"
+        observation="Real climb: 1242 m → 2883 m, +8028 m cumulative. The profile shows the multi-day trek shape."
+      />
+
+      <PipelineStage
+        num={3}
+        name="Smoothing & interpolation"
+        what="Median-filter the GPS jitter, spline-fit the path so the renderer doesn't draw a noisy zigzag. Gradient computed from smoothed altitudes."
+        inputLabel="raw jitter"
+        inputValue={'time-gap mean:    54.96 s\ntime-gap jitter:   83.4 %\naltitude stddev:  12.54 m'}
+        outputLabel="speed profile (post-smoothing)"
+        outputIframe="/assets/go-active/speed_profile.html"
+        observation="Gaps of 55 s ± 83 % mean the device slept and woke unevenly. Smoother speed curve confirms filtering held."
+      />
+
+      <PipelineStage
+        num={4}
+        name="CV quality scoring"
+        what="A small ensemble of scorers reads the cleaned track and produces four sub-scores plus an overall. Bad tracks get rejected here before the expensive render runs."
+        inputLabel="cleaned track + signals"
+        inputValue={'point density · time-gap jitter\ndropout %       · altitude jitter'}
+        outputLabel="scores 0-100 + 8 raw metrics"
+        outputValue={'overall:  32.4\ndensity:  37.8   jitter:    16.6\ndropout:  37.8   altitude:  37.3'}
+        observation="This trek scored low — uneven GPS sampling. Production would reject; for a showcase it is a useful negative example. See the full dashboard below."
+      />
+
+      <PipelineStage
+        num={5}
+        name="Render"
+        what="Build the 3D scene from the smoothed track + terrain, encode to MP4 via FFmpeg, return to Telegram. Skipped automatically when stage 4 rejects the track."
+        inputLabel="scored track"
+        inputValue={'kept: { quality > 50 → render }\nrejected: { return diagnostic }'}
+        outputLabel="3D trajectory artefact"
+        outputIframe="/assets/go-active/trajectory_3d.html"
+        observation="The 3D scene at the top of this page is the artefact of stage 5 on this exact track."
+      />
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-xl font-semibold text-accent mb-2">Quality dashboard</h2>
+      <p class="text-text-muted text-sm mb-4">
+        Same scores, packaged for Telegram. Each gauge is one CV head; the tiles are raw measurements feeding them.
+      </p>
+      <MetricsDashboard
+        src="/assets/go-active/quality_dashboard.svg"
+        alt="Go-Active quality dashboard with gauges and metric tiles"
+        caption="Computed live from the Архыз GPX. Lower scores reveal real issues — this trek's GPS sampling was uneven (83 % time-gap variance). Production rejects tracks under ~50 to save render budget."
+      />
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-xl font-semibold text-accent mb-2">Architecture</h2>
+      <p class="text-text-muted text-sm mb-4">
+        Five-stage async FastAPI pipeline behind a Telegram Mini App.
+      </p>
+      <pre class="mermaid">graph LR
+  user[Telegram user] -->|GPX upload| bot[Telegram Bot API]
+  bot --> api[FastAPI]
+  api --> s1[1. Parse]
+  s1 --> s2[2. Terrain]
+  s2 --> s3[3. Smooth]
+  s3 --> s4[4. CV scoring]
+  s4 -->|reject| diag[Return diagnostic]
+  s4 -->|keep| s5[5. Render]
+  s5 -->|MP4 + grade| bot
+  bot --> user</pre>
+      <p class="text-text-muted text-sm mt-3">
+        Each stage has its own timeout and memory budget. Rejection at stage 4 saves the render budget for tracks worth watching.
+      </p>
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-xl font-semibold text-accent mb-2">Stack</h2>
+      <StackList stack={data.stack} />
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-xl font-semibold text-accent mb-2">Links</h2>
+      <p class="text-text-muted text-sm mb-3">
+        The Mini App lives at <strong>@vixwbot</strong> in Telegram. Open it on a phone to upload your own GPX.
+      </p>
+      <LinksList links={data.links} />
+    </section>
+
+    <BuiltBy
+      author="Ed Dubnitsky"
+      scope="end-to-end: pipeline architecture, CV scoring, Telegram Mini App, deployment"
+      aiAugmented="Claude Code"
+      status="Solo project · in production with real users"
+    />
+  </main>
+</BaseLayout>

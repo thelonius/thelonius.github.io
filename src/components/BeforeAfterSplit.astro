@@ -1,0 +1,32 @@
+---
+export interface Props {
+  leftSrc: string;
+  leftLabel: string;
+  rightSrc: string;
+  rightLabel: string;
+  caption?: string;
+  height?: string;
+}
+
+const { leftSrc, leftLabel, rightSrc, rightLabel, caption, height = '380px' } = Astro.props;
+---
+
+<figure class="my-6">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+    <div class="relative bg-surface border border-border rounded-lg overflow-hidden" style={`height: ${height}`}>
+      <iframe src={leftSrc} title={leftLabel} loading="lazy" class="w-full h-full border-0"></iframe>
+      <div class="absolute top-3 left-3 px-2 py-1 bg-bg/85 border border-border rounded font-mono text-xs text-text-muted uppercase tracking-wider">
+        {leftLabel}
+      </div>
+    </div>
+    <div class="relative bg-surface border border-border rounded-lg overflow-hidden" style={`height: ${height}`}>
+      <iframe src={rightSrc} title={rightLabel} loading="lazy" class="w-full h-full border-0"></iframe>
+      <div class="absolute top-3 left-3 px-2 py-1 bg-bg/85 border border-border rounded font-mono text-xs text-accent uppercase tracking-wider">
+        {rightLabel}
+      </div>
+    </div>
+  </div>
+  {caption && (
+    <figcaption class="text-text-muted text-sm mt-3 italic">{caption}</figcaption>
+  )}
+</figure>

@@ -1,0 +1,28 @@
+---
+// Solo + AI-augmented narrative footer for showcase pages.
+// Defaults are tuned for Go-Active but everything is overridable.
+
+export interface Props {
+  author?: string;
+  scope?: string;
+  aiAugmented?: string;
+  status?: string;
+}
+
+const {
+  author = 'Ed Dubnitsky',
+  scope = 'end-to-end: pipeline architecture, CV scoring, Telegram Mini App, deployment',
+  aiAugmented = 'Claude Code',
+  status = 'Solo project · in production with real users',
+} = Astro.props;
+---
+
+<aside class="mt-12 border-l-2 border-accent bg-surface rounded-r-lg p-6">
+  <p class="font-mono text-xs text-accent uppercase tracking-widest mb-2">Built by</p>
+  <p class="text-text leading-relaxed">
+    Designed and built <strong>{scope}</strong> by <strong>{author}</strong>.
+  </p>
+  <p class="text-text-muted text-sm leading-relaxed mt-2">
+    AI-augmented coding via <strong class="text-text">{aiAugmented}</strong> — pair-programmed at the keyboard. {status}.
+  </p>
+</aside>

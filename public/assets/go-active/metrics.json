@@ -1,0 +1,23 @@
+{
+  "name": "227 - \u0410\u0440\u0445\u044b\u0437-\u0422\u0435\u0431\u0435\u0440\u0434\u0430 2024 ",
+  "n_points": 3025,
+  "total_distance_km": 159.93,
+  "total_duration_h": 46.17,
+  "elevation_min_m": 1242.7,
+  "elevation_max_m": 2883.9,
+  "elevation_gain_m": 8028.4,
+  "elevation_loss_m": 7131.2,
+  "avg_speed_ms": 0.88,
+  "max_speed_ms": 6.58,
+  "point_density_per_km": 18.9,
+  "time_gap_mean_s": 54.96,
+  "time_gap_jitter_pct": 83.4,
+  "altitude_jitter_m": 12.54,
+  "gradient_variance": 0.01261,
+  "dropout_pct": 6.22,
+  "quality_score_overall": 32.4,
+  "quality_score_density": 37.8,
+  "quality_score_jitter": 16.6,
+  "quality_score_dropout": 37.8,
+  "quality_score_altitude": 37.3
+}
