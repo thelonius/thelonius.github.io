@@ -1,0 +1,51 @@
+---
+export interface Props {
+  sections: Array<{ id: string; label: string }>;
+}
+const { sections } = Astro.props;
+---
+
+<nav class="sticky top-8 self-start hidden md:block w-32 shrink-0" aria-label="Section navigation">
+  <ul class="flex flex-col gap-2 text-xs">
+    {sections.map(s => (
+      <li>
+        <a
+          href={`#${s.id}`}
+          data-toc-link={s.id}
+          class="block py-1 text-text-muted hover:text-accent transition-colors data-[active=true]:text-accent data-[active=true]:font-semibold"
+        >
+          {s.label}
+        </a>
+      </li>
+    ))}
+  </ul>
+</nav>
+
+<script>
+  // Scroll-spy: highlight active section as user scrolls
+  const sectionEls = Array.from(document.querySelectorAll('article h2[id]'));
+  const linkEls = new Map(
+    Array.from(document.querySelectorAll('[data-toc-link]')).map(el => [
+      (el as HTMLElement).dataset.tocLink,
+      el as HTMLElement,
+    ])
+  );
+
+  if (sectionEls.length > 0 && linkEls.size > 0) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          const id = entry.target.id;
+          const link = linkEls.get(id);
+          if (entry.isIntersecting && link) {
+            linkEls.forEach(l => l.dataset.active = 'false');
+            link.dataset.active = 'true';
+          }
+        });
+      },
+      { rootMargin: '-30% 0px -60% 0px', threshold: 0 }
+    );
+
+    sectionEls.forEach(el => observer.observe(el));
+  }
+</script>
