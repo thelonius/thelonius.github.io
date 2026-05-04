@@ -1,18 +1,13 @@
 ---
-import '../styles/global.css';
+import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>Tailwind smoke test</title>
-  </head>
-  <body class="bg-bg text-text font-sans">
-    <main class="max-w-content mx-auto p-8">
-      <h1 class="text-3xl font-semibold text-accent">Hello, dark mode</h1>
-      <p class="text-text-muted mt-4">Tailwind palette and fonts wired up.</p>
-      <pre class="font-mono text-sm bg-surface border border-border rounded p-4 mt-4">precision@1 = 1.0</pre>
-    </main>
-  </body>
-</html>
+<BaseLayout
+  title="Ed Dubnitsky — AI/ML Engineer"
+  description="AI/ML Engineer building production RAG, computer vision, and multi-provider LLM pipelines. Portfolio with 5 in-depth case studies."
+>
+  <main class="max-w-content mx-auto p-8">
+    <h1 class="text-3xl font-semibold text-accent">Hello, dark mode</h1>
+    <p class="text-text-muted mt-4">BaseLayout works.</p>
+  </main>
+</BaseLayout>
