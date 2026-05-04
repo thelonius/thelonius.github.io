@@ -1,0 +1,76 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Hero from '../components/Hero.astro';
+import Sidebar from '../components/Sidebar.astro';
+import StatusTag from '../components/StatusTag.astro';
+import MetricsTable from '../components/MetricsTable.astro';
+import StackList from '../components/StackList.astro';
+import LinksList from '../components/LinksList.astro';
+
+export interface Props {
+  project: any; // CollectionEntry<'projects'>
+}
+
+const { project } = Astro.props;
+
+const sections = [
+  { id: 'problem', label: 'Problem' },
+  { id: 'approach', label: 'Approach' },
+  { id: 'architecture', label: 'Architecture' },
+  { id: 'metrics', label: 'Metrics' },
+  { id: 'stack', label: 'Stack' },
+  { id: 'links', label: 'Links' },
+];
+---
+
+<BaseLayout
+  title={`${project.data.title} — Ed Dubnitsky`}
+  description={project.data.description}
+>
+  <header class="sticky top-0 z-10 bg-bg/90 backdrop-blur border-b border-border">
+    <div class="max-w-5xl mx-auto px-6 py-3 flex items-baseline justify-between">
+      <a href="/" class="text-text-muted hover:text-accent text-sm">← back · {project.data.title}</a>
+      <StatusTag status={project.data.status} year={project.data.year} />
+    </div>
+  </header>
+
+  <div class="max-w-5xl mx-auto px-6 pt-6">
+    <Hero hero={project.data.hero} />
+    <div class="mt-6">
+      <h1 class="text-3xl font-semibold">{project.data.title}</h1>
+      <p class="text-text-muted mt-2">{project.data.tagline}</p>
+      <p class="text-text-muted text-sm mt-1 font-mono">{project.data.period}</p>
+      {project.data.keyMetric && (
+        <p class="text-accent font-mono text-sm mt-2">{project.data.keyMetric}</p>
+      )}
+    </div>
+  </div>
+
+  <div class="max-w-5xl mx-auto px-6 pt-12 pb-16 flex gap-8">
+    <Sidebar sections={sections} />
+    <article class="prose prose-invert max-w-none flex-1 min-w-0
+                    prose-headings:scroll-mt-20
+                    prose-h2:text-accent prose-h2:font-semibold prose-h2:text-xl
+                    prose-h2:mt-12 prose-h2:mb-4
+                    prose-p:text-text prose-strong:text-text
+                    prose-code:text-accent prose-code:bg-surface prose-code:px-1 prose-code:rounded
+                    prose-a:text-accent prose-a:no-underline hover:prose-a:underline
+                    prose-pre:bg-surface prose-pre:border prose-pre:border-border">
+      <slot />
+
+      {project.data.metrics && project.data.metrics.length > 0 && (
+        <section id="metrics-table" class="mt-8">
+          <MetricsTable metrics={project.data.metrics} />
+        </section>
+      )}
+
+      <section id="stack-list" class="mt-8">
+        <StackList stack={project.data.stack} />
+      </section>
+
+      <section id="links-list" class="mt-8">
+        <LinksList links={project.data.links} />
+      </section>
+    </article>
+  </div>
+</BaseLayout>

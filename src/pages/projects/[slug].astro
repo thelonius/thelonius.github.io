@@ -1,8 +1,6 @@
 ---
 import { getCollection, render, type CollectionEntry } from 'astro:content';
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import StatusTag from '../../components/StatusTag.astro';
-import Hero from '../../components/Hero.astro';
+import ShowcaseLayout from '../../layouts/ShowcaseLayout.astro';
 
 export async function getStaticPaths() {
   const projects = await getCollection('projects');
@@ -20,21 +18,6 @@ const { project } = Astro.props;
 const { Content } = await render(project);
 ---
 
-<BaseLayout
-  title={`${project.data.title} — Ed Dubnitsky`}
-  description={project.data.description}
->
-  <main class="max-w-content mx-auto p-8">
-    <a href="/" class="text-text-muted hover:text-accent">← back</a>
-    <Hero hero={project.data.hero} />
-    <h1 class="text-3xl font-semibold mt-6">{project.data.title}</h1>
-    <p class="text-text-muted mt-1">{project.data.tagline}</p>
-    <div class="flex gap-3 items-baseline mt-1">
-      <span class="text-text-muted text-sm">{project.data.period}</span>
-      <StatusTag status={project.data.status} year={project.data.year} />
-    </div>
-    <article class="prose prose-invert mt-8">
-      <Content />
-    </article>
-  </main>
-</BaseLayout>
+<ShowcaseLayout project={project}>
+  <Content />
+</ShowcaseLayout>
