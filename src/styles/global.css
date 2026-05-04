@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@theme {
+  /* Color palette */
+  --color-bg: #0f1216;
+  --color-surface: #1a1e24;
+  --color-text: #e6e9ef;
+  --color-text-muted: #8a94a7;
+  --color-accent: #7dd3fc;
+  --color-border: #242932;
+  --color-success: #86efac;
+  --color-warn: #fbbf24;
+
+  /* Font families — override Tailwind's defaults for font-sans / font-mono utilities */
+  --font-sans: -apple-system, BlinkMacSystemFont, Inter, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", SFMono-Regular, Menlo, monospace;
+
+  /* Max widths */
+  --max-width-content: 720px;
+}
+
+@layer base {
+  html {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  body {
+    min-height: 100vh;
+  }
+  code, pre {
+    font-family: var(--font-mono);
+  }
+  ::selection {
+    background-color: var(--color-accent);
+    color: var(--color-bg);
+  }
+}
