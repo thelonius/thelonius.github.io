@@ -4,12 +4,13 @@ import '../styles/global.css';
 export interface Props {
   title: string;
   description: string;
-  ogImage?: string;
+  ogImagePath?: string;
   url?: string;
 }
 
-const { title, description, ogImage = '/og-default.png', url } = Astro.props;
+const { title, description, ogImagePath = 'home', url } = Astro.props;
 const canonicalURL = url || Astro.url.toString();
+const ogImageURL = new URL(`/og/${ogImagePath}.png`, Astro.site).toString();
 ---
 
 <!DOCTYPE html>
@@ -26,14 +27,14 @@ const canonicalURL = url || Astro.url.toString();
   <meta property="og:type" content="website" />
   <meta property="og:title" content={title} />
   <meta property="og:description" content={description} />
-  <meta property="og:image" content={new URL(ogImage, Astro.site).toString()} />
+  <meta property="og:image" content={ogImageURL} />
   <meta property="og:url" content={canonicalURL} />
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content={title} />
   <meta name="twitter:description" content={description} />
-  <meta name="twitter:image" content={new URL(ogImage, Astro.site).toString()} />
+  <meta name="twitter:image" content={ogImageURL} />
 </head>
 <body class="bg-bg text-text font-sans">
   <slot />
