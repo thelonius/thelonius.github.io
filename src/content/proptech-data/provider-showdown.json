@@ -1,0 +1,31 @@
+{
+  "run_id": "STUB-pre-eval",
+  "is_stub": true,
+  "workload": "5 queries × 3 providers, same prompts, same retrieval",
+  "providers": [
+    {
+      "name": "ollama",
+      "model": "qwen3.5:9b",
+      "mean_cost_usd": 0.0,
+      "p50_latency_ms": 38000,
+      "p95_latency_ms": 52000,
+      "note": "local, free; M1 Pro"
+    },
+    {
+      "name": "nim",
+      "model": "<from .env>",
+      "mean_cost_usd": 0.000041,
+      "p50_latency_ms": 1640,
+      "p95_latency_ms": 2100,
+      "note": null
+    },
+    {
+      "name": "openai",
+      "model": "<from .env>",
+      "mean_cost_usd": 0.000127,
+      "p50_latency_ms": 1820,
+      "p95_latency_ms": 2400,
+      "note": null
+    }
+  ]
+}

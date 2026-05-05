@@ -1,0 +1,92 @@
+{
+  "run_id": "STUB-pre-eval",
+  "captured_at": "2026-05-04T00:00:00Z",
+  "is_stub": true,
+  "queries": [
+    {
+      "id": "family_with_pool",
+      "query": "Family with two kids looking for a house with swimming pool and garden",
+      "provider": "nim",
+      "duration_ms": 1640,
+      "cost_usd": 0.000040,
+      "shadow_cost_openai_usd": 0.000127,
+      "shadow_cost_nim_usd": 0.000040,
+      "results": [
+        {
+          "id": "listing_4711",
+          "score": 0.93,
+          "title": "STUB · 3-bedroom house with private pool, fenced garden",
+          "explanation": "STUB · Quiet residential street, fenced garden, proximity to a primary school"
+        },
+        {
+          "id": "listing_8822",
+          "score": 0.88,
+          "title": "STUB · Detached family home with above-ground pool",
+          "explanation": "STUB · 4 bedrooms, large garden, school catchment"
+        },
+        {
+          "id": "listing_2031",
+          "score": 0.81,
+          "title": "STUB · Suburban home with shared community pool",
+          "explanation": "STUB · Family-friendly area, shared amenities"
+        }
+      ]
+    },
+    {
+      "id": "young_professional_modern",
+      "query": "Young single professional wants a modern apartment close to business district",
+      "provider": "nim",
+      "duration_ms": 1480,
+      "cost_usd": 0.000038,
+      "shadow_cost_openai_usd": 0.000122,
+      "shadow_cost_nim_usd": 0.000038,
+      "results": [
+        {"id": "listing_5544", "score": 0.91, "title": "STUB · Loft in downtown core", "explanation": "STUB · Modern fit-out, 5-min walk to business district"},
+        {"id": "listing_7720", "score": 0.85, "title": "STUB · 1-bed apartment with co-working", "explanation": "STUB · Building has on-site work pods"},
+        {"id": "listing_3318", "score": 0.79, "title": "STUB · Studio in a converted warehouse", "explanation": "STUB · Open-plan, exposed brick, bike storage"}
+      ]
+    },
+    {
+      "id": "dog_owner_yard",
+      "query": "Dog owner, need a private yard or close access to parks",
+      "provider": "nim",
+      "duration_ms": 1700,
+      "cost_usd": 0.000042,
+      "shadow_cost_openai_usd": 0.000131,
+      "shadow_cost_nim_usd": 0.000042,
+      "results": [
+        {"id": "listing_9001", "score": 0.94, "title": "STUB · House with fenced 200m² garden", "explanation": "STUB · Pet-friendly area, two parks within 5 min"},
+        {"id": "listing_4502", "score": 0.86, "title": "STUB · Townhouse next to a dog park", "explanation": "STUB · Park-adjacent, small private yard"},
+        {"id": "listing_6612", "score": 0.78, "title": "STUB · Garden flat with shared lawn", "explanation": "STUB · Pet rules permit dogs"}
+      ]
+    },
+    {
+      "id": "elderly_parents_quiet",
+      "query": "Quiet home for my elderly parents, accessible, one floor preferably",
+      "provider": "nim",
+      "duration_ms": 1620,
+      "cost_usd": 0.000039,
+      "shadow_cost_openai_usd": 0.000124,
+      "shadow_cost_nim_usd": 0.000039,
+      "results": [
+        {"id": "listing_2244", "score": 0.92, "title": "STUB · Single-storey bungalow, level access", "explanation": "STUB · No stairs, quiet cul-de-sac"},
+        {"id": "listing_1188", "score": 0.84, "title": "STUB · Ground-floor flat with lift", "explanation": "STUB · Accessible building, lift access"},
+        {"id": "listing_7729", "score": 0.76, "title": "STUB · 2-bed with single-floor option", "explanation": "STUB · Master suite on ground floor"}
+      ]
+    },
+    {
+      "id": "remote_worker_quiet",
+      "query": "I work from home full time, need a quiet place with a room I can use as office",
+      "provider": "nim",
+      "duration_ms": 1550,
+      "cost_usd": 0.000040,
+      "shadow_cost_openai_usd": 0.000128,
+      "shadow_cost_nim_usd": 0.000040,
+      "results": [
+        {"id": "listing_3303", "score": 0.93, "title": "STUB · 3-bed with dedicated study", "explanation": "STUB · Separate office room, fibre connection"},
+        {"id": "listing_5512", "score": 0.87, "title": "STUB · Quiet flat with bonus alcove", "explanation": "STUB · Low-traffic street, work nook off the living room"},
+        {"id": "listing_8821", "score": 0.81, "title": "STUB · House with garden office", "explanation": "STUB · Detached studio in the garden"}
+      ]
+    }
+  ]
+}
