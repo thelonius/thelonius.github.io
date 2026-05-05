@@ -108,7 +108,7 @@ graph LR
       <!-- Section 4: Pipeline deep-dive -->
       <section id="pipeline" class="not-prose">
         <h2 class="text-accent font-semibold text-xl mt-12 mb-4">Pipeline deep-dive</h2>
-        <p class="text-text mb-4">One representative query through the three stages. Numbers and result IDs come from a real run; intent and explanation strings are real LLM output, lightly trimmed for layout.</p>
+        <p class="text-text mb-4">One representative query through the three stages. Result IDs and scores come from a real Qdrant run on the 100-listing subset. The intent JSON shape is the production prompt; the rerank+explain LLM stage is scaffolded but not shipped yet — explanation strings on this page are stitched from listing-payload fields. See <a href="#roadmap" class="text-accent">Roadmap</a> for what's in flight.</p>
 
         <PipelineStage
           num={1}
@@ -265,7 +265,8 @@ graph LR
         <h2>Roadmap</h2>
         <p>What's in the repo as scaffolding but not finished:</p>
         <ul>
-          <li><strong>Reranker ablation.</strong> Right now there's one LLM-rerank pass without comparison to BM25 + embedding-rerank. The eval harness can express the comparison but the BM25 leg isn't wired up yet. The point is to know what the rerank is buying over hybrid retrieval alone.</li>
+          <li><strong>Rerank + explain stage.</strong> Intent-parse and Qdrant retrieval ship. The second LLM call that re-orders the candidates and writes a per-listing explanation is scaffolded in <code>app/api/search.py</code> but not yet wired in. Until it lands, the explanations on the demo are stitched from listing-payload fields.</li>
+          <li><strong>Reranker ablation.</strong> Once rerank ships, run BM25 + embedding-rerank as a baseline so we know what the LLM rerank is actually buying. The eval harness can already express the comparison.</li>
           <li><strong>Streaming responses.</strong> The pipeline is synchronous end to end, p50 ≈ 1.6 s on NIM. The plan is to return top-K immediately and stream explanations as they come back from the reranker. The <code>asyncio</code> shape is already there; the API contract changes.</li>
           <li><strong>Multi-modal listings.</strong> Today only the listing text is indexed. The dataset (<code>Binaryy/multimodal-real-estate-search</code>) ships photos. Adding CLIP embeddings on the photos and a fusion step would unlock queries like "sunny rooms with large windows" that pure text can't catch.</li>
           <li><strong>Cost dashboard in Grafana.</strong> The Prometheus counter (<code>llm_call_cost_usd_total</code>) is emitting; the dashboard JSON is not committed. Same for the cost-by-provider stacked bar over time.</li>

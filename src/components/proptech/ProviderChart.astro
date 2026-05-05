@@ -11,8 +11,8 @@ export interface Provider {
   name: string;
   model: string;
   mean_cost_usd: number;
-  p50_latency_ms: number;
-  p95_latency_ms: number;
+  p50_latency_ms: number | null;
+  p95_latency_ms: number | null;
   note: string | null;
 }
 
@@ -43,7 +43,12 @@ const costBarH = (cost: number) => {
 };
 
 // --- Latency domain ---
-const maxLatency = Math.max(...providers.map((p) => p.p50_latency_ms), 1);
+// Treat null as "not measured" — do not include in max, render bar as a
+// dashed outline at zero height with an "n/a" label.
+const measuredLatencies = providers
+  .map((p) => p.p50_latency_ms)
+  .filter((v): v is number => typeof v === 'number');
+const maxLatency = Math.max(...measuredLatencies, 1);
 const latencyBarH = (ms: number) => Math.max(2, (ms / maxLatency) * innerH);
 
 const colors: Record<string, string> = {
@@ -58,8 +63,10 @@ const fmtCost = (c: number) => {
   // strip trailing zeros after the decimal, keep at least one
   return `$${c.toFixed(6).replace(/0+$/, '').replace(/\.$/, '.0')}`;
 };
-const fmtLatency = (ms: number) =>
-  ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${Math.round(ms)}ms`;
+const fmtLatency = (ms: number | null) => {
+  if (ms === null || ms === undefined) return 'n/a';
+  return ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${Math.round(ms)}ms`;
+};
 
 const barW = (innerW / providers.length) * 0.6;
 const gap = innerW / providers.length;
@@ -108,11 +115,17 @@ const gap = innerW / providers.length;
 
       {providers.map((p, i) => {
         const x = LEFT + i * gap + (gap - barW) / 2;
-        const h = latencyBarH(p.p50_latency_ms);
+        const measured = typeof p.p50_latency_ms === 'number';
+        const h = measured ? latencyBarH(p.p50_latency_ms as number) : 8;
         const y = TOP + innerH - h;
         return (
           <g>
-            <rect x={x} y={y} width={barW} height={h} fill={colors[p.name] || '#7dd3fc'} rx="2" />
+            {measured ? (
+              <rect x={x} y={y} width={barW} height={h} fill={colors[p.name] || '#7dd3fc'} rx="2" />
+            ) : (
+              <rect x={x} y={TOP + innerH - 8} width={barW} height={8}
+                    fill="none" stroke="#8a94a7" stroke-width="1" stroke-dasharray="3 3" rx="2" />
+            )}
             <text x={x + barW / 2} y={y - 6} text-anchor="middle"
                   font-family="ui-monospace, monospace" font-size="11"
                   class="fill-text">{fmtLatency(p.p50_latency_ms)}</text>
