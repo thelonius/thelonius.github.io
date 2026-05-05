@@ -1,0 +1,18 @@
+{
+  "frame": "render_3_msg612930_25.042s_frame_02.png",
+  "size": [
+    464,
+    536
+  ],
+  "trail_coverage_pct": 0.41,
+  "edge_density": 0.73,
+  "depth_min": 0,
+  "depth_max": 255,
+  "depth_mean": 136,
+  "marker_xy": [
+    273,
+    162
+  ],
+  "marker_radius_px": 5,
+  "scene_confidence": 70.0
+}

@@ -149,6 +149,71 @@ const queuedRenders = renders.filter(r => !r.ready);
     </section>
 
     <section class="mt-12">
+      <h2 class="text-xl font-semibold text-accent mb-2">What the CV models see</h2>
+      <p class="text-text-muted text-sm mb-4">
+        Stage 4 of the pipeline runs an ensemble of small PyTorch models on every render frame to score scene quality and detect what's in shot. Below: the four heads running on a real frame from <code class="font-mono text-accent text-xs">render_forest.mp4</code> — outputs computed live for this page (DPT-Hybrid via Hugging Face <code class="font-mono text-accent text-xs">transformers</code>, on Apple MPS).
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <figure class="bg-surface border border-border rounded-lg overflow-hidden">
+          <div class="bg-bg p-3 flex items-baseline justify-between border-b border-border">
+            <span class="font-mono text-xs uppercase tracking-wider text-text-muted">input frame</span>
+            <span class="font-mono text-xs text-text-muted">464×536 · @Vixwibot render</span>
+          </div>
+          <img src="/assets/go-active/cv/cv_original.png" alt="Original render frame" class="w-full" loading="lazy" />
+        </figure>
+
+        <figure class="bg-surface border border-border rounded-lg overflow-hidden">
+          <div class="bg-bg p-3 flex items-baseline justify-between border-b border-border">
+            <span class="font-mono text-xs uppercase tracking-wider text-accent">depth · DPT-Hybrid</span>
+            <span class="font-mono text-xs text-text-muted">monocular depth from RGB</span>
+          </div>
+          <img src="/assets/go-active/cv/cv_depth.png" alt="DPT depth estimation" class="w-full" loading="lazy" />
+          <figcaption class="text-text-muted text-xs px-3 py-2 italic">Reds are near, blues are far. The hill ridge stands out — usable for the camera-pacing heuristic to slow the flythrough on visible elevation.</figcaption>
+        </figure>
+
+        <figure class="bg-surface border border-border rounded-lg overflow-hidden">
+          <div class="bg-bg p-3 flex items-baseline justify-between border-b border-border">
+            <span class="font-mono text-xs uppercase tracking-wider text-accent">marker · HSV blob</span>
+            <span class="font-mono text-xs text-text-muted">located at (273, 162) ± 5 px</span>
+          </div>
+          <img src="/assets/go-active/cv/cv_marker.png" alt="Red marker detection" class="w-full" loading="lazy" />
+          <figcaption class="text-text-muted text-xs px-3 py-2 italic">The red runner dot found via HSV mask + largest-blob centroid. Used downstream as the focal point for camera framing.</figcaption>
+        </figure>
+
+        <figure class="bg-surface border border-border rounded-lg overflow-hidden">
+          <div class="bg-bg p-3 flex items-baseline justify-between border-b border-border">
+            <span class="font-mono text-xs uppercase tracking-wider text-accent">edges · Sobel</span>
+            <span class="font-mono text-xs text-text-muted">trail visibility check</span>
+          </div>
+          <img src="/assets/go-active/cv/cv_edges.png" alt="Sobel edges" class="w-full" loading="lazy" />
+          <figcaption class="text-text-muted text-xs px-3 py-2 italic">Edge density feeds the camera-stability head — too low = featureless terrain (push camera in); too high = busy scene (pull back).</figcaption>
+        </figure>
+      </div>
+
+      <figure class="bg-surface border border-border rounded-lg overflow-hidden mt-4">
+        <div class="bg-bg p-3 flex items-baseline justify-between border-b border-border">
+          <span class="font-mono text-xs uppercase tracking-wider text-accent">overlay · what stage 4 outputs</span>
+          <span class="font-mono text-xs text-text-muted">depth × trail × marker fused</span>
+        </div>
+        <img src="/assets/go-active/cv/cv_overlay.png" alt="Composite overlay of all CV outputs" class="w-full" loading="lazy" />
+        <figcaption class="text-text-muted text-xs px-3 py-2 italic">All four readings composited: depth as the colour wash, trail mask in cyan, marker ringed in yellow. Fed into the quality scorer below as a single tensor.</figcaption>
+      </figure>
+
+      <div class="mt-4 p-4 bg-surface border border-border rounded-lg">
+        <p class="font-mono text-xs uppercase tracking-wider text-text-muted mb-2">Per-frame metrics (this frame)</p>
+        <pre class="font-mono text-xs text-text overflow-x-auto whitespace-pre">{`scene_confidence   : 70 / 100
+trail_coverage_pct : 0.41 %
+edge_density       : 0.73 %
+depth_range        : 0–255 (mean 136)
+marker_xy          : (273, 162) ± 5 px`}</pre>
+        <p class="text-text-muted text-xs mt-2 italic">
+          These five numbers per frame × hundreds of frames = the CV input that the quality scorer aggregates into the dashboard below.
+        </p>
+      </div>
+    </section>
+
+    <section class="mt-12">
       <h2 class="text-xl font-semibold text-accent mb-2">Quality dashboard</h2>
       <p class="text-text-muted text-sm mb-4">
         Same scores, packaged for Telegram. Each gauge is one CV head; the tiles are raw measurements feeding them.
