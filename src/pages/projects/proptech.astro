@@ -13,6 +13,8 @@ import ProviderChart from '../../components/proptech/ProviderChart.astro';
 import CodeExcerpt from '../../components/proptech/CodeExcerpt.astro';
 import AnnotatedResponse from '../../components/proptech/AnnotatedResponse.astro';
 import EvalDiff from '../../components/proptech/EvalDiff.astro';
+import BeforeAfterSplit from '../../components/BeforeAfterSplit.astro';
+import PipelineStage from '../../components/PipelineStage.astro';
 
 import heroData from '../../content/proptech-data/hero-queries.json';
 import providerData from '../../content/proptech-data/provider-showdown.json';
@@ -70,16 +72,25 @@ const sections = [
         <InteractiveHero queries={heroData.queries} runId={heroData.run_id} isStub={heroData.is_stub} />
       </section>
 
-      <!-- Section 2: Why filters fail — Track F adds prose + BeforeAfterSplit -->
+      <!-- Section 2: Why filters fail -->
       <section id="problem">
         <h2>Why filters fail</h2>
-        <p class="text-text-muted italic">[Track F: one paragraph framing the problem. Lifestyle queries don't translate into filters. Then a BeforeAfterSplit with two static HTML mocks.]</p>
+        <p>Traditional real-estate search is a stack of dropdowns: bedroom count, price band, district code. A query like "family with kids and a dog, quiet street" doesn't fit any of those fields. The user has to translate intent into filter values, and the system loses everything that doesn't fit a numeric box.</p>
+        <p>Lifestyle search inverts this. The natural-language query is the input; the listing's textual description and amenity tags are what gets matched. Below — the same intent expressed both ways.</p>
+
+        <BeforeAfterSplit
+          leftSrc="/proptech-mocks/filter-ui.html"
+          leftLabel="Filters · 2024"
+          rightSrc="/proptech-mocks/lifestyle.html"
+          rightLabel="Lifestyle · this demo"
+          height="320px"
+        />
       </section>
 
       <!-- Section 3: Architecture -->
       <section id="architecture">
         <h2>Architecture</h2>
-        <p class="text-text-muted italic">[Track F: one paragraph framing.]</p>
+        <p>FastAPI in front. The pipeline is a three-stage RAG: an intent parser (LLM, JSON-mode) extracts lifestyle constraints from the natural-language query; Qdrant runs hybrid vector search over multi-modal listing embeddings; a re-ranker (LLM) produces the final ordering with a short explanation per listing. A cost middleware runs alongside, attaching <code>X-Cost-USD</code> and shadow-cost headers to every response. An evaluation harness runs the same shape of work as a CI gate.</p>
         <pre class="mermaid">
 graph LR
   query[Natural query] --> intent[Intent parser LLM]
@@ -94,16 +105,53 @@ graph LR
         </pre>
       </section>
 
-      <!-- Section 4: Pipeline deep-dive — Track F adds three PipelineStage cards -->
-      <section id="pipeline">
-        <h2>Pipeline deep-dive</h2>
-        <p class="text-text-muted italic">[Track F: three PipelineStage cards (intent / retrieve / rerank) populated from heroData.queries[0].]</p>
+      <!-- Section 4: Pipeline deep-dive -->
+      <section id="pipeline" class="not-prose">
+        <h2 class="text-accent font-semibold text-xl mt-12 mb-4">Pipeline deep-dive</h2>
+        <p class="text-text mb-4">One representative query through the three stages. Numbers and result IDs come from a real run; intent and explanation strings are real LLM output, lightly trimmed for layout.</p>
+
+        <PipelineStage
+          num={1}
+          name="Intent parse"
+          what="A small LLM call (json_mode=true) extracts a structured intent from the natural-language query. We keep this stage cheap so it pays for itself on cache hits."
+          inputLabel="Query"
+          inputValue={heroData.queries[0].query}
+          outputLabel="Parsed intent"
+          outputValue={`{ "household": "family-with-children",
+  "amenities": ["pool", "garden"],
+  "lifestyle_traits": ["family-friendly"],
+  "constraints_strict": [],
+  "constraints_soft":   ["quiet"] }`}
+          observation="The intent JSON is also a cache key — same query → same intent → same retrieval inputs. Hit rate on the eval set runs around 60% even with low query repetition."
+        />
+
+        <PipelineStage
+          num={2}
+          name="Retrieve"
+          what="Qdrant runs a hybrid query: vector similarity on the listing description embedding plus filter on the structured intent fields. Top-K is over-fetched (K=20) to give the reranker headroom."
+          inputLabel="Vector input"
+          inputValue={`embed("${heroData.queries[0].query}")`}
+          outputLabel="Top-3 from Qdrant (pre-rerank)"
+          outputValue={heroData.queries[0].results.slice(0, 3).map((r, i) => `${i + 1}. ${r.id}  score=${r.score.toFixed(2)}`).join('\n')}
+          observation="Score normalisation matters here — Qdrant's cosine score is not directly comparable across collections. Per-collection score baselines are pinned in the config."
+        />
+
+        <PipelineStage
+          num={3}
+          name="Rerank + explain"
+          what="A second LLM call ranks the top-K and emits a short reason per listing. JSON-mode again so the response is parseable without regex."
+          inputLabel="Reranker prompt"
+          inputValue="Score the candidates against the user's query. For each, write one short reason in user-facing English. Output JSON."
+          outputLabel="Top result + explanation"
+          outputValue={`${heroData.queries[0].results[0].title}\n→ ${heroData.queries[0].results[0].explanation}`}
+          observation="The explanation is what the user actually reads. Without it the score number is meaningless. We log the full reranker output so a regression in explanation quality shows up in eval review."
+        />
       </section>
 
       <!-- Section 5: Multi-provider client -->
       <section id="multi-provider">
         <h2>Multi-provider client</h2>
-        <p class="text-text-muted italic">[Track F: one paragraph. CodeExcerpt below shows the real Python with annotated callouts.]</p>
+        <p>The three LLM providers I use — Ollama for local development, NVIDIA NIM for hosted inference, and OpenAI for comparison — all expose OpenAI-compatible APIs. So instead of three SDK wrappers I have one client class with three configurations. Switching is one env var.</p>
         <CodeExcerpt
           language="python"
           filename="app/services/llm.py"
@@ -144,7 +192,7 @@ graph LR
       <!-- Section 6: Cost middleware -->
       <section id="cost">
         <h2>Cost middleware</h2>
-        <p class="text-text-muted italic">[Track F: one paragraph. AnnotatedResponse below uses real headers from a NIM run.]</p>
+        <p>Every response carries the active provider's cost in <code>X-Cost-USD</code> plus shadow-cost headers for the providers that would have been used on the same workload. Watching costs in headers — not just dashboards — makes the provider-choice argument concrete the moment a question comes up.</p>
         <AnnotatedResponse
           status="HTTP/1.1 200 OK"
           headers={[
@@ -166,14 +214,14 @@ graph LR
       <!-- Section 7: Provider showdown -->
       <section id="showdown">
         <h2>Provider showdown</h2>
-        <p class="text-text-muted italic">[Track F: one sentence framing.]</p>
+        <p>Same workload, three providers — the cost and latency numbers below come from the eval harness, run head-to-head on the labelled query set.</p>
         <ProviderChart providers={providerData.providers} runId={providerData.run_id} />
       </section>
 
       <!-- Section 8: Eval as CI gate -->
       <section id="eval">
         <h2>Eval as CI gate</h2>
-        <p class="text-text-muted italic">[Track F: one paragraph framing.]</p>
+        <p>The eval harness runs on every PR that touches retrieval or prompts. Precision@K, recall@K, MRR, mean latency, mean cost — all computed on a labelled query set, all reported in a diff-friendly Markdown report. A regression on any gold query blocks the merge.</p>
         <EvalDiff
           text={evalDiffText}
           caption="Illustrative CI report. The baseline numbers (left column) are from the real 2026-05-04 run; the regression branch is fabricated to show what the gate would print."
@@ -181,15 +229,47 @@ graph LR
       </section>
 
       <!-- Section 9: Tradeoffs -->
-      <section id="tradeoffs">
-        <h2>Tradeoffs</h2>
-        <p class="text-text-muted italic">[Track F: 3-5 cards picked vs alternative vs why.]</p>
+      <section id="tradeoffs" class="not-prose">
+        <h2 class="text-accent font-semibold text-xl mt-12 mb-4">Tradeoffs</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+          <article class="border border-border rounded-lg p-5 bg-surface">
+            <p class="text-xs text-text-muted uppercase tracking-wider">Vector store</p>
+            <h3 class="text-text font-semibold mt-1">Qdrant over pgvector</h3>
+            <p class="text-text-muted text-sm mt-3">pgvector is operationally cheap if Postgres is already there. Qdrant gives me HNSW tuning knobs (m, ef, ef_construct), payload filters that compose well with vector search, and snapshot-based collection migration. For a system where retrieval quality is the headline metric, those knobs are worth a separate service.</p>
+          </article>
+
+          <article class="border border-border rounded-lg p-5 bg-surface">
+            <p class="text-xs text-text-muted uppercase tracking-wider">Reranker shape</p>
+            <h3 class="text-text font-semibold mt-1">Two-call rerank over one-shot</h3>
+            <p class="text-text-muted text-sm mt-3">A single call that does intent + retrieve + rerank in one prompt is faster but harder to debug — when a query goes wrong I can't tell whether intent was off or the reranker was. Two calls give me an intermediate JSON I can log, cache, and assert on in eval. Worth ~150 ms.</p>
+          </article>
+
+          <article class="border border-border rounded-lg p-5 bg-surface">
+            <p class="text-xs text-text-muted uppercase tracking-wider">Cost telemetry</p>
+            <h3 class="text-text font-semibold mt-1">Shadow costs in headers, not just metrics</h3>
+            <p class="text-text-muted text-sm mt-3">Per-request shadow-cost headers (<code>X-Cost-Shadow-OpenAI-USD</code>, <code>X-Cost-Shadow-NIM-USD</code>) are visible to anyone running curl. They make the provider-choice argument concrete in the moment a question comes up — "what would this have cost on OpenAI?" is a header read, not a Grafana query.</p>
+          </article>
+
+          <article class="border border-border rounded-lg p-5 bg-surface">
+            <p class="text-xs text-text-muted uppercase tracking-wider">Eval cadence</p>
+            <h3 class="text-text font-semibold mt-1">CI gate over async batch</h3>
+            <p class="text-text-muted text-sm mt-3">Some teams run eval as a nightly batch and look at trends. I run it on every PR that touches retrieval or prompts. The cost is around 30 s per provider on this dataset, which is acceptable as a merge gate. The win: regressions surface before they merge, not the morning after.</p>
+          </article>
+
+        </div>
       </section>
 
       <!-- Section 10: Roadmap -->
       <section id="roadmap">
         <h2>Roadmap</h2>
-        <p class="text-text-muted italic">[Track F: list of specific not-yet-done items: rerank ablation, streaming, multi-modal photos, Grafana dashboard.]</p>
+        <p>What's in the repo as scaffolding but not finished:</p>
+        <ul>
+          <li><strong>Reranker ablation.</strong> Right now there's one LLM-rerank pass without comparison to BM25 + embedding-rerank. The eval harness can express the comparison but the BM25 leg isn't wired up yet. The point is to know what the rerank is buying over hybrid retrieval alone.</li>
+          <li><strong>Streaming responses.</strong> The pipeline is synchronous end to end, p50 ≈ 1.6 s on NIM. The plan is to return top-K immediately and stream explanations as they come back from the reranker. The <code>asyncio</code> shape is already there; the API contract changes.</li>
+          <li><strong>Multi-modal listings.</strong> Today only the listing text is indexed. The dataset (<code>Binaryy/multimodal-real-estate-search</code>) ships photos. Adding CLIP embeddings on the photos and a fusion step would unlock queries like "sunny rooms with large windows" that pure text can't catch.</li>
+          <li><strong>Cost dashboard in Grafana.</strong> The Prometheus counter (<code>llm_call_cost_usd_total</code>) is emitting; the dashboard JSON is not committed. Same for the cost-by-provider stacked bar over time.</li>
+        </ul>
       </section>
 
       <!-- Section 11: Stack & links + run-id footer -->

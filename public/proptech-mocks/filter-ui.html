@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Filter UI</title>
+<style>
+  body { background: #1a1e24; color: #e6e9ef; font-family: system-ui; padding: 24px; margin: 0; }
+  h3   { color: #7dd3fc; font-size: 14px; margin: 0 0 12px; }
+  .row { display: flex; gap: 12px; margin-bottom: 8px; align-items: center; }
+  label { width: 90px; font-size: 12px; color: #8a94a7; }
+  select, input { background: #0f1216; color: #e6e9ef; border: 1px solid #242932; padding: 4px 8px; font-size: 12px; }
+  .empty { color: #8a94a7; font-size: 12px; margin-top: 16px; font-style: italic; }
+</style></head>
+<body>
+  <h3>Filter-based search</h3>
+  <div class="row"><label>Bedrooms</label><select><option>2+</option></select></div>
+  <div class="row"><label>Price</label><input value="500000-800000"></div>
+  <div class="row"><label>District</label><select><option>All</option></select></div>
+  <div class="row"><label>Type</label><select><option>House</option></select></div>
+  <p class="empty">"family with kids and a dog, quiet area" · no place to type this</p>
+</body></html>
