@@ -1,0 +1,78 @@
+---
+// src/components/proptech/CodeExcerpt.astro
+// Code block with optional inline [[N]] callout markers and a numbered
+// annotation list below.
+//
+// Props:
+//   language:    string (display label, e.g. "python")
+//   code:        string (the code; use [[1]], [[2]] inline as callout markers)
+//   annotations: Array<{ marker: number, note: string }>
+//   filename?:   string (shown in header)
+
+export interface Annotation {
+  marker: number;
+  note: string;
+}
+
+export interface Props {
+  language: string;
+  code: string;
+  annotations?: Annotation[];
+  filename?: string;
+}
+
+const { language, code, annotations = [], filename } = Astro.props;
+
+// Convert "[[1]]" inline markers into a styled span. Server-rendered.
+const renderedCode = code.replace(
+  /\[\[(\d+)\]\]/g,
+  (_, n) => `<span class="callout-marker">${n}</span>`
+);
+---
+
+<figure class="my-6 not-prose">
+  <div class="bg-surface border border-border rounded-lg overflow-hidden">
+
+    {filename && (
+      <div class="bg-bg border-b border-border px-3 py-2 font-mono text-xs text-text-muted flex justify-between">
+        <span>{filename}</span>
+        <span class="text-text-muted/60">{language}</span>
+      </div>
+    )}
+
+    <pre class="p-4 m-0 overflow-x-auto text-sm leading-relaxed font-mono text-text" set:html={renderedCode}></pre>
+  </div>
+
+  {annotations.length > 0 && (
+    <ol class="mt-3 space-y-2 text-sm list-none p-0">
+      {annotations.map((a) => (
+        <li class="flex gap-3">
+          <span class="callout-marker callout-marker-list">{a.marker}</span>
+          <span class="text-text-muted">{a.note}</span>
+        </li>
+      ))}
+    </ol>
+  )}
+</figure>
+
+<style>
+  .callout-marker {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.4em;
+    height: 1.4em;
+    padding: 0 0.4em;
+    margin: 0 0.15em;
+    border-radius: 999px;
+    background: rgba(125, 211, 252, 0.15);
+    color: #7dd3fc;
+    font-size: 0.78em;
+    font-weight: 600;
+    border: 1px solid rgba(125, 211, 252, 0.4);
+  }
+  .callout-marker-list {
+    flex-shrink: 0;
+    margin-top: 0.1em;
+  }
+</style>

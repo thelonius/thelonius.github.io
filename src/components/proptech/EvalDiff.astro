@@ -1,0 +1,52 @@
+---
+// src/components/proptech/EvalDiff.astro
+// Renders a fixture text body with diff-aware styling.
+// '+' lines green, '-' lines red, '=' lines neutral.
+
+export interface Props {
+  text: string;
+  caption?: string;
+}
+
+const { text, caption } = Astro.props;
+
+type LineKind = 'add' | 'remove' | 'context';
+type Line = { kind: LineKind; text: string };
+
+function classifyLine(raw: string): Line {
+  if (raw.startsWith('+ ') || raw.startsWith('+\t')) return { kind: 'add',     text: raw.slice(2) };
+  if (raw.startsWith('- ') || raw.startsWith('-\t')) return { kind: 'remove',  text: raw.slice(2) };
+  if (raw.startsWith('= ') || raw.startsWith('=\t')) return { kind: 'context', text: raw.slice(2) };
+  if (raw.trim() === '=')                            return { kind: 'context', text: '' };
+  return { kind: 'context', text: raw };
+}
+
+const lines: Line[] = text.split('\n').map(classifyLine);
+
+const styleByKind: Record<LineKind, string> = {
+  add:     'bg-green-400/10 text-green-300',
+  remove:  'bg-red-400/10 text-red-300',
+  context: 'text-text-muted',
+};
+
+const prefixByKind: Record<LineKind, string> = {
+  add: '+ ', remove: '- ', context: '  ',
+};
+---
+
+<figure class="my-6 not-prose">
+  <div class="bg-surface border border-border rounded-lg overflow-hidden">
+    <div class="bg-bg border-b border-border px-3 py-2 font-mono text-xs text-text-muted">
+      eval CI report · markdown rendered as diff
+    </div>
+    <pre class="p-0 m-0 overflow-x-auto font-mono text-sm leading-relaxed">
+{lines.map((line) => (
+        <div class={`px-4 ${styleByKind[line.kind]}`}>
+          <span class="select-none">{prefixByKind[line.kind]}</span>{line.text || ' '}
+        </div>
+      ))}</pre>
+  </div>
+  {caption && (
+    <figcaption class="text-text-muted text-xs font-mono mt-3">{caption}</figcaption>
+  )}
+</figure>

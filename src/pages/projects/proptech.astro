@@ -10,9 +10,13 @@ import LinksList from '../../components/LinksList.astro';
 import MetricsTable from '../../components/MetricsTable.astro';
 import InteractiveHero from '../../components/proptech/InteractiveHero.astro';
 import ProviderChart from '../../components/proptech/ProviderChart.astro';
+import CodeExcerpt from '../../components/proptech/CodeExcerpt.astro';
+import AnnotatedResponse from '../../components/proptech/AnnotatedResponse.astro';
+import EvalDiff from '../../components/proptech/EvalDiff.astro';
 
 import heroData from '../../content/proptech-data/hero-queries.json';
 import providerData from '../../content/proptech-data/provider-showdown.json';
+import evalDiffText from '../../content/proptech-data/eval-diff.md?raw';
 
 const projects = await getCollection('projects');
 const project = projects.find((p) => p.data.slug === 'proptech')!;
@@ -96,18 +100,67 @@ graph LR
         <p class="text-text-muted italic">[Track F: three PipelineStage cards (intent / retrieve / rerank) populated from heroData.queries[0].]</p>
       </section>
 
-      <!-- Section 5: Multi-provider client — Track E provides CodeExcerpt; Track F writes the prose around it -->
+      <!-- Section 5: Multi-provider client -->
       <section id="multi-provider">
         <h2>Multi-provider client</h2>
         <p class="text-text-muted italic">[Track F: one paragraph. CodeExcerpt below shows the real Python with annotated callouts.]</p>
-        <!-- TRACK-E-SLOT: <CodeExcerpt language="python" filename="app/services/llm.py" code={...} annotations={...} /> -->
+        <CodeExcerpt
+          language="python"
+          filename="app/services/llm.py"
+          code={`class LLMClient:
+    """Thin wrapper around AsyncOpenAI configured for the active provider."""
+
+    def __init__(self, settings: Settings | None = None,
+                 provider: LLMProvider | None = None):
+        self.settings = settings or get_settings()
+        self.provider: LLMProvider = provider or self.settings.llm_provider
+        self._client = self._build_client()
+
+    def _build_client(self) -> AsyncOpenAI:  [[1]]
+        s = self.settings
+        if self.provider == "ollama":
+            return AsyncOpenAI(base_url=f"{s.ollama_base_url}/v1",
+                               api_key="ollama", timeout=s.llm_request_timeout_s)
+        if self.provider == "openai":
+            return AsyncOpenAI(api_key=s.openai_api_key or "missing",
+                               timeout=s.llm_request_timeout_s)
+        if self.provider == "nim":
+            return AsyncOpenAI(base_url=s.nim_base_url,
+                               api_key=s.nim_api_key or "missing",
+                               timeout=s.llm_request_timeout_s)
+        raise ValueError(f"unknown provider {self.provider}")
+
+# Provider switch is one env var:  [[2]]
+#   LLM_PROVIDER=nim    make api
+#   LLM_PROVIDER=openai make api
+`}
+          annotations={[
+            { marker: 1, note: "All three providers expose an OpenAI-compatible Chat Completions API. We use the openai SDK for everything and differ only in base_url + api_key + model." },
+            { marker: 2, note: "Switching providers is one env var. Cost middleware reads X-Cost-USD plus shadow headers for the providers that would have been used." }
+          ]}
+        />
       </section>
 
-      <!-- Section 6: Cost middleware — Track E provides AnnotatedResponse -->
+      <!-- Section 6: Cost middleware -->
       <section id="cost">
         <h2>Cost middleware</h2>
         <p class="text-text-muted italic">[Track F: one paragraph. AnnotatedResponse below uses real headers from a NIM run.]</p>
-        <!-- TRACK-E-SLOT: <AnnotatedResponse status="HTTP/1.1 200 OK" headers={...} caption={...} /> -->
+        <AnnotatedResponse
+          status="HTTP/1.1 200 OK"
+          headers={[
+            { name: "X-Provider",                value: "nim",
+              annotation: "Active provider on this request — read from LLM_PROVIDER env var at startup." },
+            { name: "X-Duration-Ms",             value: "1640",
+              annotation: "End-to-end latency including intent parse, vector search, rerank+explain." },
+            { name: "X-Cost-USD",                value: "0.000040",
+              annotation: "Real cost: input_tokens × price_per_million from app/core/config.py::cost_table." },
+            { name: "X-Cost-Shadow-OpenAI-USD",  value: "0.000127",
+              annotation: "What the same request would have cost on OpenAI. Computed from the same token counts × OpenAI pricing." },
+            { name: "X-Cost-Shadow-NIM-USD",     value: "0.000040",
+              annotation: "Same workload on NIM. Equal to X-Cost-USD when NIM is the active provider." }
+          ]}
+          caption="Headers from a NIM run. Token counts come from the OpenAI SDK response when present, tiktoken cl100k_base when not."
+        />
       </section>
 
       <!-- Section 7: Provider showdown -->
@@ -117,11 +170,14 @@ graph LR
         <ProviderChart providers={providerData.providers} runId={providerData.run_id} />
       </section>
 
-      <!-- Section 8: Eval as CI gate — Track E provides EvalDiff -->
+      <!-- Section 8: Eval as CI gate -->
       <section id="eval">
         <h2>Eval as CI gate</h2>
         <p class="text-text-muted italic">[Track F: one paragraph framing.]</p>
-        <!-- TRACK-E-SLOT: <EvalDiff text={evalDiffText} caption={...} /> -->
+        <EvalDiff
+          text={evalDiffText}
+          caption="Illustrative CI report. The baseline numbers (left column) are from the real 2026-05-04 run; the regression branch is fabricated to show what the gate would print."
+        />
       </section>
 
       <!-- Section 9: Tradeoffs -->
