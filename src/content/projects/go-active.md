@@ -6,20 +6,10 @@ period: Apr 2025 — present · production
 status: production
 year: 2025
 hero:
-  type: terminal
-  alt: Go-Active Telegram Mini App entry point
-  content: |
-    Open Telegram
-
-      → @vixwbot
-
-    A 5-stage async FastAPI pipeline behind
-    a Mini App. GPX in → cinematic 3D video
-    out, with CV quality scoring on every
-    stage.
-
-      [ open in Telegram ]
-  note: GIF walkthrough from the Mini App on phone — coming soon
+  type: github-og
+  src: thelonius/go-active
+  alt: Go-Active production render preview from @Vixwibot
+  note: Real render from production · 25-second clip from @Vixwibot
 keyMetric: 5-stage CV pipeline · 15+ quality metrics
 stack:
   - Python
@@ -41,8 +31,11 @@ metrics:
     value: production
     hint: Telegram Mini App with real users
 links:
-  - label: Open in Telegram
-    url: https://t.me/vixwbot
+  - label: Open @Vixwibot in Telegram
+    url: https://t.me/Vixwibot
+    kind: demo
+  - label: vixwi.com — Mini App
+    url: https://vixwi.com/
     kind: demo
 featured: true
 deep: true

@@ -27,21 +27,41 @@ const { data } = project;
   </header>
 
   <main class="max-w-5xl mx-auto px-6 pt-8 pb-16">
-    <BeforeAfterSplit
-      leftSrc="/assets/go-active/trajectory_2d.html"
-      leftLabel="Raw GPX · top-down"
-      rightSrc="/assets/go-active/trajectory_3d.html"
-      rightLabel="3D terrain-aware"
-      caption="From flat GPS dots to a terrain-aware 3D scene. Same 3025 points, two readings."
-      height="380px"
-    />
+    <figure class="my-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="relative bg-surface border border-border rounded-lg overflow-hidden" style="height: 460px">
+          <iframe src="/assets/go-active/trajectory_2d.html" title="Raw GPX top-down" loading="lazy" class="w-full h-full border-0"></iframe>
+          <div class="absolute top-3 left-3 px-2 py-1 bg-bg/85 border border-border rounded font-mono text-xs text-text-muted uppercase tracking-wider">
+            Raw GPX · 3025 dots
+          </div>
+        </div>
+        <div class="relative bg-surface border border-border rounded-lg overflow-hidden flex items-center justify-center" style="height: 460px">
+          <video
+            src="/assets/go-active/production_render.mp4"
+            poster="/assets/go-active/production_render_poster.png"
+            autoplay muted loop playsinline
+            class="h-full w-auto"
+            aria-label="Real production render from @Vixwibot"
+          ></video>
+          <div class="absolute top-3 left-3 px-2 py-1 bg-bg/85 border border-border rounded font-mono text-xs text-accent uppercase tracking-wider">
+            Real production render
+          </div>
+          <div class="absolute bottom-3 left-3 px-2 py-1 bg-bg/80 border border-border rounded font-mono text-xs text-text-muted">
+            from @Vixwibot · 25 s clip
+          </div>
+        </div>
+      </div>
+      <figcaption class="text-text-muted text-sm mt-3 italic">
+        Left: how a GPX file looks as raw 2D dots. Right: the same kind of trajectory after the full pipeline runs and the renderer encodes it to MP4 — this clip came straight out of the production bot @Vixwibot. The rest of this page shows how raw dots become that.
+      </figcaption>
+    </figure>
 
     <section class="mt-8">
       <h1 class="text-4xl font-semibold tracking-tight">{data.title}</h1>
       <p class="text-text-muted mt-2 text-lg">{data.tagline}</p>
       <p class="text-text-muted text-sm mt-1 font-mono">{data.period}</p>
       <p class="text-accent font-mono text-sm mt-3">
-        5-stage CV pipeline · 159 km Архыз–Теберда analysed live below
+        Live in production at <a href="https://t.me/Vixwibot" class="hover:underline">@Vixwibot</a> · Mini App at <a href="https://vixwi.com/" class="hover:underline">vixwi.com</a>
       </p>
     </section>
 
@@ -106,12 +126,12 @@ const { data } = project;
       <PipelineStage
         num={5}
         name="Render"
-        what="Build the 3D scene from the smoothed track + terrain, encode to MP4 via FFmpeg, return to Telegram. Skipped automatically when stage 4 rejects the track."
+        what="Build the 3D scene from the smoothed track + terrain, encode to MP4 via FFmpeg, return to Telegram. Skipped automatically when stage 4 rejects the track. The 25-second clip in the hero of this page is a real artefact of this stage from @Vixwibot."
         inputLabel="scored track"
         inputValue={'kept: { quality > 50 → render }\nrejected: { return diagnostic }'}
         outputLabel="3D trajectory artefact"
         outputIframe="/assets/go-active/trajectory_3d.html"
-        observation="The 3D scene at the top of this page is the artefact of stage 5 on this exact track."
+        observation="Plotly 3D embed here is interactive — drag to rotate. The MP4 in the hero is what end-users actually receive in Telegram."
       />
     </section>
 
@@ -197,9 +217,22 @@ const { data } = project;
     <section class="mt-12">
       <h2 class="text-xl font-semibold text-accent mb-2">Links</h2>
       <p class="text-text-muted text-sm mb-3">
-        The Mini App lives at <strong>@vixwbot</strong> in Telegram. Open it on a phone to upload your own GPX.
+        Live in production at <strong>@Vixwibot</strong> in Telegram — search for it in your client, or open the Mini App directly at <a href="https://vixwi.com/" class="text-accent hover:underline">vixwi.com</a>. Upload your own GPX to see your render.
       </p>
-      <LinksList links={data.links} />
+      <ul class="flex flex-col gap-2">
+        <li>
+          <a href="https://t.me/Vixwibot" target="_blank" rel="noopener" class="inline-flex items-center gap-2 text-accent hover:underline">
+            <span class="font-mono text-text-muted">↗</span>
+            Open @Vixwibot in Telegram
+          </a>
+        </li>
+        <li>
+          <a href="https://vixwi.com/" target="_blank" rel="noopener" class="inline-flex items-center gap-2 text-accent hover:underline">
+            <span class="font-mono text-text-muted">↗</span>
+            vixwi.com — Mini App entry
+          </a>
+        </li>
+      </ul>
     </section>
 
     <BuiltBy
