@@ -1,0 +1,166 @@
+---
+// src/pages/projects/proptech.astro
+// Dedicated rich-showcase page. Overrides the dynamic [slug].astro for proptech.
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import StatusTag from '../../components/StatusTag.astro';
+import StackList from '../../components/StackList.astro';
+import LinksList from '../../components/LinksList.astro';
+import MetricsTable from '../../components/MetricsTable.astro';
+
+import heroData from '../../content/proptech-data/hero-queries.json';
+import providerData from '../../content/proptech-data/provider-showdown.json';
+
+const projects = await getCollection('projects');
+const project = projects.find((p) => p.data.slug === 'proptech')!;
+
+const sections = [
+  { id: 'hero',           label: 'Try it' },
+  { id: 'problem',        label: 'Why filters fail' },
+  { id: 'architecture',   label: 'Architecture' },
+  { id: 'pipeline',       label: 'Pipeline deep-dive' },
+  { id: 'multi-provider', label: 'Multi-provider client' },
+  { id: 'cost',           label: 'Cost middleware' },
+  { id: 'showdown',       label: 'Provider showdown' },
+  { id: 'eval',           label: 'Eval as CI gate' },
+  { id: 'tradeoffs',      label: 'Tradeoffs' },
+  { id: 'roadmap',        label: 'Roadmap' },
+  { id: 'stack',          label: 'Stack & links' },
+];
+---
+
+<BaseLayout
+  title={`${project.data.title} — Ed Dubnitsky`}
+  description={project.data.description}
+  ogImagePath={project.data.slug}
+>
+  <header class="sticky top-0 z-10 bg-bg/90 backdrop-blur border-b border-border">
+    <div class="max-w-5xl mx-auto px-6 py-3 flex items-baseline justify-between">
+      <a href="/" class="text-text-muted hover:text-accent text-sm">← back · {project.data.title}</a>
+      <StatusTag status={project.data.status} year={project.data.year} />
+    </div>
+  </header>
+
+  <div class="max-w-5xl mx-auto px-6 pt-6">
+    <h1 class="text-3xl font-semibold">{project.data.title}</h1>
+    <p class="text-text-muted mt-2">{project.data.tagline}</p>
+    <p class="text-text-muted text-sm mt-1 font-mono">{project.data.period}</p>
+    {project.data.keyMetric && (
+      <p class="text-accent font-mono text-sm mt-2">{project.data.keyMetric}</p>
+    )}
+  </div>
+
+  <div class="max-w-5xl mx-auto px-6 pt-12 pb-16 flex gap-8">
+    <Sidebar sections={sections} />
+    <article class="flex-1 min-w-0 prose prose-invert max-w-none
+                    prose-headings:scroll-mt-20
+                    prose-h2:text-accent prose-h2:font-semibold prose-h2:text-xl
+                    prose-h2:mt-12 prose-h2:mb-4
+                    prose-p:text-text prose-strong:text-text">
+
+      <!-- Section 1: Interactive hero — slot for Track C -->
+      <section id="hero" class="not-prose mb-12">
+        <!-- TRACK-C-SLOT: replace this placeholder with:
+             import InteractiveHero from '../../components/proptech/InteractiveHero.astro';
+             <InteractiveHero queries={heroData.queries} runId={heroData.run_id} isStub={heroData.is_stub} />
+        -->
+        <div class="border border-warn rounded p-6 font-mono text-sm text-warn">
+          [hero placeholder — Track C will replace]
+        </div>
+      </section>
+
+      <!-- Section 2: Why filters fail — Track F adds prose + BeforeAfterSplit -->
+      <section id="problem">
+        <h2>Why filters fail</h2>
+        <p class="text-text-muted italic">[Track F: one paragraph framing the problem. Lifestyle queries don't translate into filters. Then a BeforeAfterSplit with two static HTML mocks.]</p>
+      </section>
+
+      <!-- Section 3: Architecture -->
+      <section id="architecture">
+        <h2>Architecture</h2>
+        <p class="text-text-muted italic">[Track F: one paragraph framing.]</p>
+        <pre class="mermaid">
+graph LR
+  query[Natural query] --> intent[Intent parser LLM]
+  intent --> qdrant[(Qdrant)]
+  qdrant --> rerank[Re-ranker LLM + explanations]
+  rerank --> resp[Response]
+  query -.parallel.-> cost[Cost middleware]
+  cost --> real[X-Cost-USD]
+  cost --> shadow1[X-Cost-Shadow-OpenAI]
+  cost --> shadow2[X-Cost-Shadow-NIM]
+  eval[Eval harness CI gate] -.checks.-> resp
+        </pre>
+      </section>
+
+      <!-- Section 4: Pipeline deep-dive — Track F adds three PipelineStage cards -->
+      <section id="pipeline">
+        <h2>Pipeline deep-dive</h2>
+        <p class="text-text-muted italic">[Track F: three PipelineStage cards (intent / retrieve / rerank) populated from heroData.queries[0].]</p>
+      </section>
+
+      <!-- Section 5: Multi-provider client — Track E provides CodeExcerpt; Track F writes the prose around it -->
+      <section id="multi-provider">
+        <h2>Multi-provider client</h2>
+        <p class="text-text-muted italic">[Track F: one paragraph. CodeExcerpt below shows the real Python with annotated callouts.]</p>
+        <!-- TRACK-E-SLOT: <CodeExcerpt language="python" filename="app/services/llm.py" code={...} annotations={...} /> -->
+      </section>
+
+      <!-- Section 6: Cost middleware — Track E provides AnnotatedResponse -->
+      <section id="cost">
+        <h2>Cost middleware</h2>
+        <p class="text-text-muted italic">[Track F: one paragraph. AnnotatedResponse below uses real headers from a NIM run.]</p>
+        <!-- TRACK-E-SLOT: <AnnotatedResponse status="HTTP/1.1 200 OK" headers={...} caption={...} /> -->
+      </section>
+
+      <!-- Section 7: Provider showdown — Track D provides ProviderChart -->
+      <section id="showdown">
+        <h2>Provider showdown</h2>
+        <p class="text-text-muted italic">[Track F: one sentence framing.]</p>
+        <!-- TRACK-D-SLOT: <ProviderChart providers={providerData.providers} runId={providerData.run_id} /> -->
+        <p class="text-warn font-mono text-sm">[provider chart placeholder — Track D will replace]</p>
+      </section>
+
+      <!-- Section 8: Eval as CI gate — Track E provides EvalDiff -->
+      <section id="eval">
+        <h2>Eval as CI gate</h2>
+        <p class="text-text-muted italic">[Track F: one paragraph framing.]</p>
+        <!-- TRACK-E-SLOT: <EvalDiff text={evalDiffText} caption={...} /> -->
+      </section>
+
+      <!-- Section 9: Tradeoffs -->
+      <section id="tradeoffs">
+        <h2>Tradeoffs</h2>
+        <p class="text-text-muted italic">[Track F: 3-5 cards picked vs alternative vs why.]</p>
+      </section>
+
+      <!-- Section 10: Roadmap -->
+      <section id="roadmap">
+        <h2>Roadmap</h2>
+        <p class="text-text-muted italic">[Track F: list of specific not-yet-done items: rerank ablation, streaming, multi-modal photos, Grafana dashboard.]</p>
+      </section>
+
+      <!-- Section 11: Stack & links + run-id footer -->
+      <section id="stack" class="not-prose mt-12">
+        <h2 class="text-accent font-semibold text-xl mb-4">Stack</h2>
+        <StackList stack={project.data.stack} />
+
+        {project.data.metrics && project.data.metrics.length > 0 && (
+          <>
+            <h2 class="text-accent font-semibold text-xl mt-12 mb-4">Metrics</h2>
+            <MetricsTable metrics={project.data.metrics} />
+          </>
+        )}
+
+        <h2 class="text-accent font-semibold text-xl mt-12 mb-4">Links</h2>
+        <LinksList links={project.data.links} />
+
+        <p class="text-text-muted text-xs font-mono mt-8">
+          Numbers from run id <code class="text-accent">{heroData.run_id}</code>{heroData.is_stub && <span class="text-warn"> · STUB · awaiting data-runner</span>}
+        </p>
+      </section>
+
+    </article>
+  </div>
+</BaseLayout>
