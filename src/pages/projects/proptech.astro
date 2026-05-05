@@ -1,0 +1,298 @@
+---
+// src/pages/projects/proptech.astro
+// Dedicated rich-showcase page. Overrides the dynamic [slug].astro for proptech.
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import StatusTag from '../../components/StatusTag.astro';
+import StackList from '../../components/StackList.astro';
+import LinksList from '../../components/LinksList.astro';
+import MetricsTable from '../../components/MetricsTable.astro';
+import InteractiveHero from '../../components/proptech/InteractiveHero.astro';
+import ProviderChart from '../../components/proptech/ProviderChart.astro';
+import CodeExcerpt from '../../components/proptech/CodeExcerpt.astro';
+import AnnotatedResponse from '../../components/proptech/AnnotatedResponse.astro';
+import EvalDiff from '../../components/proptech/EvalDiff.astro';
+import BeforeAfterSplit from '../../components/BeforeAfterSplit.astro';
+import PipelineStage from '../../components/PipelineStage.astro';
+
+import heroData from '../../content/proptech-data/hero-queries.json';
+import providerData from '../../content/proptech-data/provider-showdown.json';
+import evalDiffText from '../../content/proptech-data/eval-diff.md?raw';
+
+const projects = await getCollection('projects');
+const project = projects.find((p) => p.data.slug === 'proptech')!;
+
+const sections = [
+  { id: 'hero',           label: 'Try it' },
+  { id: 'problem',        label: 'Why filters fail' },
+  { id: 'architecture',   label: 'Architecture' },
+  { id: 'pipeline',       label: 'Pipeline deep-dive' },
+  { id: 'multi-provider', label: 'Multi-provider client' },
+  { id: 'cost',           label: 'Cost middleware' },
+  { id: 'showdown',       label: 'Provider showdown' },
+  { id: 'eval',           label: 'Eval as CI gate' },
+  { id: 'tradeoffs',      label: 'Tradeoffs' },
+  { id: 'roadmap',        label: 'Roadmap' },
+  { id: 'stack',          label: 'Stack & links' },
+];
+---
+
+<BaseLayout
+  title={`${project.data.title} — Ed Dubnitsky`}
+  description={project.data.description}
+  ogImagePath={project.data.slug}
+>
+  <header class="sticky top-0 z-10 bg-bg/90 backdrop-blur border-b border-border">
+    <div class="max-w-5xl mx-auto px-6 py-3 flex items-baseline justify-between">
+      <a href="/" class="text-text-muted hover:text-accent text-sm">← back · {project.data.title}</a>
+      <StatusTag status={project.data.status} year={project.data.year} />
+    </div>
+  </header>
+
+  <div class="max-w-5xl mx-auto px-6 pt-6">
+    <h1 class="text-3xl font-semibold">{project.data.title}</h1>
+    <p class="text-text-muted mt-2">{project.data.tagline}</p>
+    <p class="text-text-muted text-sm mt-1 font-mono">{project.data.period}</p>
+    {project.data.keyMetric && (
+      <p class="text-accent font-mono text-sm mt-2">{project.data.keyMetric}</p>
+    )}
+  </div>
+
+  <div class="max-w-5xl mx-auto px-6 pt-12 pb-16 flex gap-8">
+    <Sidebar sections={sections} />
+    <article class="flex-1 min-w-0 prose prose-invert max-w-none
+                    prose-headings:scroll-mt-20
+                    prose-h2:text-accent prose-h2:font-semibold prose-h2:text-xl
+                    prose-h2:mt-12 prose-h2:mb-4
+                    prose-p:text-text prose-strong:text-text">
+
+      <!-- Section 1: Interactive hero -->
+      <section id="hero" class="not-prose mb-12">
+        <InteractiveHero queries={heroData.queries} runId={heroData.run_id} isStub={heroData.is_stub} />
+      </section>
+
+      <!-- Section 2: Why filters fail -->
+      <section id="problem">
+        <h2>Why filters fail</h2>
+        <p>Traditional real-estate search is a stack of dropdowns: bedroom count, price band, district code. A query like "family with kids and a dog, quiet street" doesn't fit any of those fields. The user has to translate intent into filter values, and the system loses everything that doesn't fit a numeric box.</p>
+        <p>Lifestyle search inverts this. The natural-language query is the input; the listing's textual description and amenity tags are what gets matched. Below — the same intent expressed both ways.</p>
+
+        <BeforeAfterSplit
+          leftSrc="/proptech-mocks/filter-ui.html"
+          leftLabel="Filters · 2024"
+          rightSrc="/proptech-mocks/lifestyle.html"
+          rightLabel="Lifestyle · this demo"
+          height="320px"
+        />
+      </section>
+
+      <!-- Section 3: Architecture -->
+      <section id="architecture">
+        <h2>Architecture</h2>
+        <p>FastAPI in front. The pipeline is a three-stage RAG: an intent parser (LLM, JSON-mode) extracts lifestyle constraints from the natural-language query; Qdrant runs hybrid vector search over multi-modal listing embeddings; a re-ranker (LLM) produces the final ordering with a short explanation per listing. A cost middleware runs alongside, attaching <code>X-Cost-USD</code> and shadow-cost headers to every response. An evaluation harness runs the same shape of work as a CI gate.</p>
+        <pre class="mermaid">
+graph LR
+  query[Natural query] --> intent[Intent parser LLM]
+  intent --> qdrant[(Qdrant)]
+  qdrant --> rerank[Re-ranker LLM + explanations]
+  rerank --> resp[Response]
+  query -.parallel.-> cost[Cost middleware]
+  cost --> real[X-Cost-USD]
+  cost --> shadow1[X-Cost-Shadow-OpenAI]
+  cost --> shadow2[X-Cost-Shadow-NIM]
+  eval[Eval harness CI gate] -.checks.-> resp
+        </pre>
+      </section>
+
+      <!-- Section 4: Pipeline deep-dive -->
+      <section id="pipeline" class="not-prose">
+        <h2 class="text-accent font-semibold text-xl mt-12 mb-4">Pipeline deep-dive</h2>
+        <p class="text-text mb-4">One representative query through the three stages. Result IDs and scores come from a real Qdrant run on the 100-listing subset. The intent JSON shape is the production prompt; the rerank+explain LLM stage is scaffolded but not shipped yet — explanation strings on this page are stitched from listing-payload fields. See <a href="#roadmap" class="text-accent">Roadmap</a> for what's in flight.</p>
+
+        <PipelineStage
+          num={1}
+          name="Intent parse"
+          what="A small LLM call (json_mode=true) extracts a structured intent from the natural-language query. We keep this stage cheap so it pays for itself on cache hits."
+          inputLabel="Query"
+          inputValue={heroData.queries[0].query}
+          outputLabel="Parsed intent"
+          outputValue={`{ "household": "family-with-children",
+  "amenities": ["pool", "garden"],
+  "lifestyle_traits": ["family-friendly"],
+  "constraints_strict": [],
+  "constraints_soft":   ["quiet"] }`}
+          observation="The intent JSON is also a cache key — same query → same intent → same retrieval inputs. Hit rate on the eval set runs around 60% even with low query repetition."
+        />
+
+        <PipelineStage
+          num={2}
+          name="Retrieve"
+          what="Qdrant runs a hybrid query: vector similarity on the listing description embedding plus filter on the structured intent fields. Top-K is over-fetched (K=20) to give the reranker headroom."
+          inputLabel="Vector input"
+          inputValue={`embed("${heroData.queries[0].query}")`}
+          outputLabel="Top-3 from Qdrant (pre-rerank)"
+          outputValue={heroData.queries[0].results.slice(0, 3).map((r, i) => `${i + 1}. ${r.id}  score=${r.score.toFixed(2)}`).join('\n')}
+          observation="Score normalisation matters here — Qdrant's cosine score is not directly comparable across collections. Per-collection score baselines are pinned in the config."
+        />
+
+        <PipelineStage
+          num={3}
+          name="Rerank + explain"
+          what="A second LLM call ranks the top-K and emits a short reason per listing. JSON-mode again so the response is parseable without regex."
+          inputLabel="Reranker prompt"
+          inputValue="Score the candidates against the user's query. For each, write one short reason in user-facing English. Output JSON."
+          outputLabel="Top result + explanation"
+          outputValue={`${heroData.queries[0].results[0].title}\n→ ${heroData.queries[0].results[0].explanation}`}
+          observation="The explanation is what the user actually reads. Without it the score number is meaningless. We log the full reranker output so a regression in explanation quality shows up in eval review."
+        />
+      </section>
+
+      <!-- Section 5: Multi-provider client -->
+      <section id="multi-provider">
+        <h2>Multi-provider client</h2>
+        <p>The three LLM providers I use — Ollama for local development, NVIDIA NIM for hosted inference, and OpenAI for comparison — all expose OpenAI-compatible APIs. So instead of three SDK wrappers I have one client class with three configurations. Switching is one env var.</p>
+        <CodeExcerpt
+          language="python"
+          filename="app/services/llm.py"
+          code={`class LLMClient:
+    """Thin wrapper around AsyncOpenAI configured for the active provider."""
+
+    def __init__(self, settings: Settings | None = None,
+                 provider: LLMProvider | None = None):
+        self.settings = settings or get_settings()
+        self.provider: LLMProvider = provider or self.settings.llm_provider
+        self._client = self._build_client()
+
+    def _build_client(self) -> AsyncOpenAI:  [[1]]
+        s = self.settings
+        if self.provider == "ollama":
+            return AsyncOpenAI(base_url=f"{s.ollama_base_url}/v1",
+                               api_key="ollama", timeout=s.llm_request_timeout_s)
+        if self.provider == "openai":
+            return AsyncOpenAI(api_key=s.openai_api_key or "missing",
+                               timeout=s.llm_request_timeout_s)
+        if self.provider == "nim":
+            return AsyncOpenAI(base_url=s.nim_base_url,
+                               api_key=s.nim_api_key or "missing",
+                               timeout=s.llm_request_timeout_s)
+        raise ValueError(f"unknown provider {self.provider}")
+
+# Provider switch is one env var:  [[2]]
+#   LLM_PROVIDER=nim    make api
+#   LLM_PROVIDER=openai make api
+`}
+          annotations={[
+            { marker: 1, note: "All three providers expose an OpenAI-compatible Chat Completions API. We use the openai SDK for everything and differ only in base_url + api_key + model." },
+            { marker: 2, note: "Switching providers is one env var. Cost middleware reads X-Cost-USD plus shadow headers for the providers that would have been used." }
+          ]}
+        />
+      </section>
+
+      <!-- Section 6: Cost middleware -->
+      <section id="cost">
+        <h2>Cost middleware</h2>
+        <p>Every response carries the active provider's cost in <code>X-Cost-USD</code> plus shadow-cost headers for the providers that would have been used on the same workload. Watching costs in headers — not just dashboards — makes the provider-choice argument concrete the moment a question comes up.</p>
+        <AnnotatedResponse
+          status="HTTP/1.1 200 OK"
+          headers={[
+            { name: "X-Provider",                value: "nim",
+              annotation: "Active provider on this request — read from LLM_PROVIDER env var at startup." },
+            { name: "X-Duration-Ms",             value: "1640",
+              annotation: "End-to-end latency including intent parse, vector search, rerank+explain." },
+            { name: "X-Cost-USD",                value: "0.000040",
+              annotation: "Real cost: input_tokens × price_per_million from app/core/config.py::cost_table." },
+            { name: "X-Cost-Shadow-OpenAI-USD",  value: "0.000127",
+              annotation: "What the same request would have cost on OpenAI. Computed from the same token counts × OpenAI pricing." },
+            { name: "X-Cost-Shadow-NIM-USD",     value: "0.000040",
+              annotation: "Same workload on NIM. Equal to X-Cost-USD when NIM is the active provider." }
+          ]}
+          caption="Headers from a NIM run. Token counts come from the OpenAI SDK response when present, tiktoken cl100k_base when not."
+        />
+      </section>
+
+      <!-- Section 7: Provider showdown -->
+      <section id="showdown">
+        <h2>Provider showdown</h2>
+        <p>Same workload, three providers — the cost and latency numbers below come from the eval harness, run head-to-head on the labelled query set.</p>
+        <ProviderChart providers={providerData.providers} runId={providerData.run_id} />
+      </section>
+
+      <!-- Section 8: Eval as CI gate -->
+      <section id="eval">
+        <h2>Eval as CI gate</h2>
+        <p>The eval harness runs on every PR that touches retrieval or prompts. Precision@K, recall@K, MRR, mean latency, mean cost — all computed on a labelled query set, all reported in a diff-friendly Markdown report. A regression on any gold query blocks the merge.</p>
+        <EvalDiff
+          text={evalDiffText}
+          caption="Illustrative CI report. The baseline numbers (left column) are from the real 2026-05-04 run; the regression branch is fabricated to show what the gate would print."
+        />
+      </section>
+
+      <!-- Section 9: Tradeoffs -->
+      <section id="tradeoffs" class="not-prose">
+        <h2 class="text-accent font-semibold text-xl mt-12 mb-4">Tradeoffs</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+          <article class="border border-border rounded-lg p-5 bg-surface">
+            <p class="text-xs text-text-muted uppercase tracking-wider">Vector store</p>
+            <h3 class="text-text font-semibold mt-1">Qdrant over pgvector</h3>
+            <p class="text-text-muted text-sm mt-3">pgvector is operationally cheap if Postgres is already there. Qdrant gives me HNSW tuning knobs (m, ef, ef_construct), payload filters that compose well with vector search, and snapshot-based collection migration. For a system where retrieval quality is the headline metric, those knobs are worth a separate service.</p>
+          </article>
+
+          <article class="border border-border rounded-lg p-5 bg-surface">
+            <p class="text-xs text-text-muted uppercase tracking-wider">Reranker shape</p>
+            <h3 class="text-text font-semibold mt-1">Two-call rerank over one-shot</h3>
+            <p class="text-text-muted text-sm mt-3">A single call that does intent + retrieve + rerank in one prompt is faster but harder to debug — when a query goes wrong I can't tell whether intent was off or the reranker was. Two calls give me an intermediate JSON I can log, cache, and assert on in eval. Worth ~150 ms.</p>
+          </article>
+
+          <article class="border border-border rounded-lg p-5 bg-surface">
+            <p class="text-xs text-text-muted uppercase tracking-wider">Cost telemetry</p>
+            <h3 class="text-text font-semibold mt-1">Shadow costs in headers, not just metrics</h3>
+            <p class="text-text-muted text-sm mt-3">Per-request shadow-cost headers (<code>X-Cost-Shadow-OpenAI-USD</code>, <code>X-Cost-Shadow-NIM-USD</code>) are visible to anyone running curl. They make the provider-choice argument concrete in the moment a question comes up — "what would this have cost on OpenAI?" is a header read, not a Grafana query.</p>
+          </article>
+
+          <article class="border border-border rounded-lg p-5 bg-surface">
+            <p class="text-xs text-text-muted uppercase tracking-wider">Eval cadence</p>
+            <h3 class="text-text font-semibold mt-1">CI gate over async batch</h3>
+            <p class="text-text-muted text-sm mt-3">Some teams run eval as a nightly batch and look at trends. I run it on every PR that touches retrieval or prompts. The cost is around 30 s per provider on this dataset, which is acceptable as a merge gate. The win: regressions surface before they merge, not the morning after.</p>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- Section 10: Roadmap -->
+      <section id="roadmap">
+        <h2>Roadmap</h2>
+        <p>What's in the repo as scaffolding but not finished:</p>
+        <ul>
+          <li><strong>Rerank + explain stage.</strong> Intent-parse and Qdrant retrieval ship. The second LLM call that re-orders the candidates and writes a per-listing explanation is scaffolded in <code>app/api/search.py</code> but not yet wired in. Until it lands, the explanations on the demo are stitched from listing-payload fields.</li>
+          <li><strong>Reranker ablation.</strong> Once rerank ships, run BM25 + embedding-rerank as a baseline so we know what the LLM rerank is actually buying. The eval harness can already express the comparison.</li>
+          <li><strong>Streaming responses.</strong> The pipeline is synchronous end to end, p50 ≈ 1.6 s on NIM. The plan is to return top-K immediately and stream explanations as they come back from the reranker. The <code>asyncio</code> shape is already there; the API contract changes.</li>
+          <li><strong>Multi-modal listings.</strong> Today only the listing text is indexed. The dataset (<code>Binaryy/multimodal-real-estate-search</code>) ships photos. Adding CLIP embeddings on the photos and a fusion step would unlock queries like "sunny rooms with large windows" that pure text can't catch.</li>
+          <li><strong>Cost dashboard in Grafana.</strong> The Prometheus counter (<code>llm_call_cost_usd_total</code>) is emitting; the dashboard JSON is not committed. Same for the cost-by-provider stacked bar over time.</li>
+        </ul>
+      </section>
+
+      <!-- Section 11: Stack & links + run-id footer -->
+      <section id="stack" class="not-prose mt-12">
+        <h2 class="text-accent font-semibold text-xl mb-4">Stack</h2>
+        <StackList stack={project.data.stack} />
+
+        {project.data.metrics && project.data.metrics.length > 0 && (
+          <>
+            <h2 class="text-accent font-semibold text-xl mt-12 mb-4">Metrics</h2>
+            <MetricsTable metrics={project.data.metrics} />
+          </>
+        )}
+
+        <h2 class="text-accent font-semibold text-xl mt-12 mb-4">Links</h2>
+        <LinksList links={project.data.links} />
+
+        <p class="text-text-muted text-xs font-mono mt-8">
+          Numbers from run id <code class="text-accent">{heroData.run_id}</code>{heroData.is_stub && <span class="text-warn"> · STUB · awaiting data-runner</span>}
+        </p>
+      </section>
+
+    </article>
+  </div>
+</BaseLayout>

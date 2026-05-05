@@ -1,0 +1,152 @@
+{
+  "run_id": "2026-05-04-baseline",
+  "captured_at": "2026-05-05T05:40:10+00:00",
+  "is_stub": false,
+  "queries": [
+    {
+      "id": "family_two_kids_dog",
+      "query": "Family with two kids and a dog looking for a quiet house with a backyard",
+      "provider": "nim",
+      "duration_ms": 2369.5,
+      "cost_usd": 3.9e-05,
+      "shadow_cost_openai_usd": 0.000123,
+      "shadow_cost_nim_usd": 3.9e-05,
+      "results": [
+        {
+          "id": "85",
+          "score": 0.6334,
+          "title": "5 bedroom detached duplex for sale",
+          "explanation": "5-bedroom, Opebi, Ikeja, Lagos, ~$196,666. NEWLY BUILT FULLY DETACHED 5 BEDROOM DUPLEX WITH BQ FEATURES: Self compound (Alone in the compound) Spacious living room All rooms ensuite…"
+        },
+        {
+          "id": "19",
+          "score": 0.6266,
+          "title": "3 bedroom house for sale",
+          "explanation": "3-bedroom, Sangotedo, Ajah, Lagos. For sale Beautiful spacious 3 bedroom pent house in a secured environment Features: 3 ensuite bedrooms 1 visitors living room with balcony…"
+        },
+        {
+          "id": "33",
+          "score": 0.6248,
+          "title": "3 bedroom detached bungalow for sale",
+          "explanation": "3-bedroom, Queen Homes Estate, Mowe Ofada, Ogun. PARTNER ABN DEVELOPED BY LANDMARK QUEENS HOME ESTATE LOCATION : MOWE/OFADA Queens Homes Mowe/Ofada offers you a one-of-a-kind land space in…"
+        }
+      ]
+    },
+    {
+      "id": "elderly_single_floor",
+      "query": "Looking for a place for elderly parents — single floor, no stairs, close to clinic",
+      "provider": "nim",
+      "duration_ms": 2160.7,
+      "cost_usd": 3.8e-05,
+      "shadow_cost_openai_usd": 0.000117,
+      "shadow_cost_nim_usd": 3.8e-05,
+      "results": [
+        {
+          "id": "89",
+          "score": 0.5694,
+          "title": "3 bedroom semi-detached duplex for sale",
+          "explanation": "3-bedroom, Rockvale Estate Close To Cedar Crest Hospital, Apo, Abuja. Uncompleted building, well built world class smart standard very sharp and spacious luxury 3 bedroom semi detached duplex with 1room bq…"
+        },
+        {
+          "id": "25",
+          "score": 0.565,
+          "title": "3 bedroom terraced duplex for sale",
+          "explanation": "3-bedroom, Oniru, Victoria Island (VI), Lagos. PRODUCT OF THE DAY ONIRU VI."
+        },
+        {
+          "id": "94",
+          "score": 0.5599,
+          "title": "3 bedroom terraced duplex for sale",
+          "explanation": "3-bedroom, Harris Drive/ Victoria Crest Homes, Ikota, Lekki, Lagos. VICTORIA CREST V 3bedroom terrace duplex 78m LOCATION: Harris Drive by VGC."
+        }
+      ]
+    },
+    {
+      "id": "investor_luxury",
+      "query": "Luxury investment property in Lekki or Ikoyi, premium finish, short-let potential",
+      "provider": "nim",
+      "duration_ms": 1358.7,
+      "cost_usd": 3.8e-05,
+      "shadow_cost_openai_usd": 0.000119,
+      "shadow_cost_nim_usd": 3.9e-05,
+      "results": [
+        {
+          "id": "43",
+          "score": 0.7042,
+          "title": "5 bedroom detached duplex for sale",
+          "explanation": "5-bedroom, Orchid, Lekki Phase 2, Lekki, Lagos. Property has its duties as well as its rights DON'T JUST DREAM OF A PROSPEROUS HOME, TAKE ACTION NOW AND MAKE IT A REALITY This is the best…"
+        },
+        {
+          "id": "53",
+          "score": 0.7022,
+          "title": "4 bedroom terraced duplex for sale",
+          "explanation": "4-bedroom, Meadow Hall Way Ikate Elegushi, Lekki Phase 1, Lekki, Lagos. Owning this home provides stability and a sense of belonging to a community."
+        },
+        {
+          "id": "5",
+          "score": 0.6625,
+          "title": "Block of flats for sale",
+          "explanation": "1-bedroom, Nta/ Choba Road, Port Harcourt, Rivers. FOR SALE: Magnificiently Built and Spacious 9 units of 1 Bedroom Block of Flats, 4 bedroom duplex and self contain in a serene environment…"
+        }
+      ]
+    },
+    {
+      "id": "remote_worker_quiet",
+      "query": "Remote software engineer, needs a quiet home office and reliable area",
+      "provider": "nim",
+      "duration_ms": 1232.4,
+      "cost_usd": 3.7e-05,
+      "shadow_cost_openai_usd": 0.000113,
+      "shadow_cost_nim_usd": 3.7e-05,
+      "results": [
+        {
+          "id": "33",
+          "score": 0.577,
+          "title": "3 bedroom detached bungalow for sale",
+          "explanation": "3-bedroom, Queen Homes Estate, Mowe Ofada, Ogun. PARTNER ABN DEVELOPED BY LANDMARK QUEENS HOME ESTATE LOCATION : MOWE/OFADA Queens Homes Mowe/Ofada offers you a one-of-a-kind land space in…"
+        },
+        {
+          "id": "18",
+          "score": 0.5759,
+          "title": "1 bedroom block of flats for sale",
+          "explanation": "1-bedroom, Laguna Beach Resort, By Abraham Adesanya, Before Lagos Business School, Ogombo, Ajah, Lagos, ~$23,333. LAGUNA BEACH APARTMENTS SERIES 1 LOCATION: OKUN AJAH,AJAH TITLE: C OF O Laguna Beach Apartment Series 1 is Taking Shape Work is seriously…"
+        },
+        {
+          "id": "85",
+          "score": 0.5724,
+          "title": "5 bedroom detached duplex for sale",
+          "explanation": "5-bedroom, Opebi, Ikeja, Lagos, ~$196,666. NEWLY BUILT FULLY DETACHED 5 BEDROOM DUPLEX WITH BQ FEATURES: Self compound (Alone in the compound) Spacious living room All rooms ensuite…"
+        }
+      ]
+    },
+    {
+      "id": "pet_friendly_outdoor",
+      "query": "Pet-friendly, outdoor space, gated compound, safe for dogs",
+      "provider": "nim",
+      "duration_ms": 4704.5,
+      "cost_usd": 3.8e-05,
+      "shadow_cost_openai_usd": 0.000121,
+      "shadow_cost_nim_usd": 3.9e-05,
+      "results": [
+        {
+          "id": "71",
+          "score": 0.5969,
+          "title": "4 bedroom semi-detached duplex for sale",
+          "explanation": "4-bedroom, Ologolo, Lekki, Lagos, ~$73,333. FOR SALE: Nicely Built & Brand New 4 Bedroom Semi-Detached Duplex at Ologolo, Lekki-Lagos."
+        },
+        {
+          "id": "33",
+          "score": 0.596,
+          "title": "3 bedroom detached bungalow for sale",
+          "explanation": "3-bedroom, Queen Homes Estate, Mowe Ofada, Ogun. PARTNER ABN DEVELOPED BY LANDMARK QUEENS HOME ESTATE LOCATION : MOWE/OFADA Queens Homes Mowe/Ofada offers you a one-of-a-kind land space in…"
+        },
+        {
+          "id": "19",
+          "score": 0.5775,
+          "title": "3 bedroom house for sale",
+          "explanation": "3-bedroom, Sangotedo, Ajah, Lagos. For sale Beautiful spacious 3 bedroom pent house in a secured environment Features: 3 ensuite bedrooms 1 visitors living room with balcony…"
+        }
+      ]
+    }
+  ]
+}

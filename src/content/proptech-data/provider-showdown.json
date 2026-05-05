@@ -1,0 +1,32 @@
+{
+  "run_id": "2026-05-04-baseline",
+  "captured_at": "2026-05-05T05:50:42+00:00",
+  "is_stub": false,
+  "workload": "5 hero queries, same prompts, same retrieval (Ollama nomic-embed-text → Qdrant), only the LLM provider varies",
+  "providers": [
+    {
+      "name": "ollama",
+      "model": "qwen3.5:9b",
+      "mean_cost_usd": 0.0,
+      "p50_latency_ms": 107821,
+      "p95_latency_ms": 125027,
+      "note": "local, free; M1 Pro, intent-parse dominates"
+    },
+    {
+      "name": "nim",
+      "model": "meta/llama-3.1-8b-instruct",
+      "mean_cost_usd": 3.8e-05,
+      "p50_latency_ms": 2161,
+      "p95_latency_ms": 4237,
+      "note": null
+    },
+    {
+      "name": "openai",
+      "model": "gpt-4o-mini",
+      "mean_cost_usd": 0.0001186,
+      "p50_latency_ms": null,
+      "p95_latency_ms": null,
+      "note": "cost = published pricing × token count; latency not measured (no OPENAI_API_KEY available for this run)"
+    }
+  ]
+}

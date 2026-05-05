@@ -1,0 +1,124 @@
+---
+// src/components/proptech/InteractiveHero.astro
+// Interactive hero: chip selector + pre-rendered response panels.
+// One inline <script> toggles `hidden` on panels — no framework hydration.
+//
+// Props:
+//   queries: array (see proptech-data/hero-queries.json shape)
+//   runId:   string
+//   isStub:  boolean (renders a "STUB · awaiting data-runner" tag if true)
+
+export interface HeroQuery {
+  id: string;
+  query: string;
+  provider: string;
+  duration_ms: number;
+  cost_usd: number;
+  shadow_cost_openai_usd: number;
+  shadow_cost_nim_usd: number;
+  results: Array<{
+    id: string;
+    score: number;
+    title: string;
+    explanation: string;
+  }>;
+}
+
+export interface Props {
+  queries: HeroQuery[];
+  runId: string;
+  isStub?: boolean;
+}
+
+const { queries, runId, isStub = false } = Astro.props;
+---
+
+<section class="border border-border rounded-lg bg-surface overflow-hidden">
+
+  <!-- Header strip with run-id stamp -->
+  <div class="border-b border-border bg-bg px-4 py-2 flex items-center justify-between font-mono text-xs">
+    <span class="text-text-muted">POST /search · click a chip to swap response</span>
+    <span class="text-text-muted">
+      run <code class="text-accent">{runId}</code>
+      {isStub && <span class="ml-2 text-warn">[STUB]</span>}
+    </span>
+  </div>
+
+  <!-- Chip selector -->
+  <div class="px-4 pt-4 pb-2 flex flex-wrap gap-2" role="tablist" aria-label="Pre-recorded queries">
+    {queries.map((q, i) => (
+      <button
+        type="button"
+        class={`hero-chip text-xs font-mono px-3 py-1.5 rounded border transition-colors
+                ${i === 0 ? 'bg-accent/15 border-accent text-accent' : 'bg-bg border-border text-text-muted hover:border-text-muted'}`}
+        role="tab"
+        aria-controls={`hero-panel-${q.id}`}
+        aria-selected={i === 0 ? 'true' : 'false'}
+        data-target={`hero-panel-${q.id}`}
+      >
+        {q.query.length > 64 ? q.query.slice(0, 61) + '…' : q.query}
+      </button>
+    ))}
+  </div>
+
+  <!-- Response panels (one per query) -->
+  <div class="px-4 pb-4">
+    {queries.map((q, i) => (
+      <div
+        id={`hero-panel-${q.id}`}
+        class={`hero-panel ${i === 0 ? '' : 'hidden'}`}
+        role="tabpanel"
+      >
+        <pre class="text-sm font-mono leading-relaxed text-text whitespace-pre-wrap">{`$ curl -s -X POST http://localhost:8002/search \\
+    -H 'Content-Type: application/json' \\
+    -d '{"query":"${q.query}"}'`}</pre>
+
+        <pre class="mt-3 text-xs font-mono leading-relaxed text-text-muted">{`HTTP/1.1 200 OK
+X-Provider:                ${q.provider}
+X-Duration-Ms:             ${q.duration_ms}
+X-Cost-USD:                ${q.cost_usd.toFixed(6)}
+X-Cost-Shadow-OpenAI-USD:  ${q.shadow_cost_openai_usd.toFixed(6)}
+X-Cost-Shadow-NIM-USD:     ${q.shadow_cost_nim_usd.toFixed(6)}`}</pre>
+
+        <ol class="mt-3 space-y-2">
+          {q.results.map((r, ri) => (
+            <li class="border border-border bg-bg rounded p-3">
+              <div class="flex items-baseline gap-3 font-mono text-xs">
+                <span class="text-accent">{(ri + 1)}.</span>
+                <span class="text-text-muted">{r.id}</span>
+                <span class="text-text-muted">score={r.score.toFixed(2)}</span>
+              </div>
+              <p class="text-text mt-1">{r.title}</p>
+              <p class="text-text-muted text-sm mt-1 italic">→ {r.explanation}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    ))}
+  </div>
+
+</section>
+
+<script is:inline>
+  (function () {
+    const chips = document.querySelectorAll('.hero-chip');
+    const panels = document.querySelectorAll('.hero-panel');
+    chips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const targetId = chip.getAttribute('data-target');
+        chips.forEach((c) => {
+          c.classList.remove('bg-accent/15', 'border-accent', 'text-accent');
+          c.classList.add('bg-bg', 'border-border', 'text-text-muted');
+          c.setAttribute('aria-selected', 'false');
+        });
+        chip.classList.remove('bg-bg', 'border-border', 'text-text-muted');
+        chip.classList.add('bg-accent/15', 'border-accent', 'text-accent');
+        chip.setAttribute('aria-selected', 'true');
+        panels.forEach((p) => {
+          if (p.id === targetId) p.classList.remove('hidden');
+          else p.classList.add('hidden');
+        });
+      });
+    });
+  })();
+</script>
