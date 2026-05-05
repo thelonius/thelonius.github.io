@@ -8,6 +8,7 @@ import StatusTag from '../../components/StatusTag.astro';
 import StackList from '../../components/StackList.astro';
 import LinksList from '../../components/LinksList.astro';
 import MetricsTable from '../../components/MetricsTable.astro';
+import InteractiveHero from '../../components/proptech/InteractiveHero.astro';
 
 import heroData from '../../content/proptech-data/hero-queries.json';
 import providerData from '../../content/proptech-data/provider-showdown.json';
@@ -59,15 +60,9 @@ const sections = [
                     prose-h2:mt-12 prose-h2:mb-4
                     prose-p:text-text prose-strong:text-text">
 
-      <!-- Section 1: Interactive hero — slot for Track C -->
+      <!-- Section 1: Interactive hero -->
       <section id="hero" class="not-prose mb-12">
-        <!-- TRACK-C-SLOT: replace this placeholder with:
-             import InteractiveHero from '../../components/proptech/InteractiveHero.astro';
-             <InteractiveHero queries={heroData.queries} runId={heroData.run_id} isStub={heroData.is_stub} />
-        -->
-        <div class="border border-warn rounded p-6 font-mono text-sm text-warn">
-          [hero placeholder — Track C will replace]
-        </div>
+        <InteractiveHero queries={heroData.queries} runId={heroData.run_id} isStub={heroData.is_stub} />
       </section>
 
       <!-- Section 2: Why filters fail — Track F adds prose + BeforeAfterSplit -->
