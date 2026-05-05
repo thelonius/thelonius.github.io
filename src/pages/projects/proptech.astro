@@ -9,6 +9,7 @@ import StackList from '../../components/StackList.astro';
 import LinksList from '../../components/LinksList.astro';
 import MetricsTable from '../../components/MetricsTable.astro';
 import InteractiveHero from '../../components/proptech/InteractiveHero.astro';
+import ProviderChart from '../../components/proptech/ProviderChart.astro';
 
 import heroData from '../../content/proptech-data/hero-queries.json';
 import providerData from '../../content/proptech-data/provider-showdown.json';
@@ -109,12 +110,11 @@ graph LR
         <!-- TRACK-E-SLOT: <AnnotatedResponse status="HTTP/1.1 200 OK" headers={...} caption={...} /> -->
       </section>
 
-      <!-- Section 7: Provider showdown — Track D provides ProviderChart -->
+      <!-- Section 7: Provider showdown -->
       <section id="showdown">
         <h2>Provider showdown</h2>
         <p class="text-text-muted italic">[Track F: one sentence framing.]</p>
-        <!-- TRACK-D-SLOT: <ProviderChart providers={providerData.providers} runId={providerData.run_id} /> -->
-        <p class="text-warn font-mono text-sm">[provider chart placeholder — Track D will replace]</p>
+        <ProviderChart providers={providerData.providers} runId={providerData.run_id} />
       </section>
 
       <!-- Section 8: Eval as CI gate — Track E provides EvalDiff -->

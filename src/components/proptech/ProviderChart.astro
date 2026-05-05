@@ -1,0 +1,137 @@
+---
+// src/components/proptech/ProviderChart.astro
+// Server-rendered SVG bar chart: cost (USD per query) and latency (p50 ms)
+// per provider. Reads provider-showdown.json shape.
+//
+// Two charts side-by-side:
+//   left  = mean_cost_usd (linear scale; Ollama ≈ 0 gets a 2px floor bar)
+//   right = p50_latency_ms
+
+export interface Provider {
+  name: string;
+  model: string;
+  mean_cost_usd: number;
+  p50_latency_ms: number;
+  p95_latency_ms: number;
+  note: string | null;
+}
+
+export interface Props {
+  providers: Provider[];
+  runId: string;
+}
+
+const { providers, runId } = Astro.props;
+
+// Layout constants
+const W = 420;
+const H = 220;
+const TOP = 30;
+const BOTTOM = 50;
+const LEFT = 80;
+const RIGHT = 16;
+const innerW = W - LEFT - RIGHT;
+const innerH = H - TOP - BOTTOM;
+
+// --- Cost domain ---
+// Linear scale on [0, max], with a 2px floor bar for ollama (cost ≈ 0)
+// so it stays visible as "≈0" rather than disappearing.
+const maxCost = Math.max(...providers.map((p) => p.mean_cost_usd), 0.0001);
+const costBarH = (cost: number) => {
+  if (cost <= 0) return 2;
+  return Math.max(2, (cost / maxCost) * innerH);
+};
+
+// --- Latency domain ---
+const maxLatency = Math.max(...providers.map((p) => p.p50_latency_ms), 1);
+const latencyBarH = (ms: number) => Math.max(2, (ms / maxLatency) * innerH);
+
+const colors: Record<string, string> = {
+  ollama: '#86efac',   // green — local, free
+  nim:    '#7dd3fc',   // accent blue — winner
+  openai: '#fbbf24',   // warn — paid, slowest
+};
+
+// Cost format: shows full precision for small numbers; "$0" for zero.
+const fmtCost = (c: number) => {
+  if (c === 0) return '$0';
+  // strip trailing zeros after the decimal, keep at least one
+  return `$${c.toFixed(6).replace(/0+$/, '').replace(/\.$/, '.0')}`;
+};
+const fmtLatency = (ms: number) =>
+  ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${Math.round(ms)}ms`;
+
+const barW = (innerW / providers.length) * 0.6;
+const gap = innerW / providers.length;
+---
+
+<figure class="my-6 not-prose">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+    <!-- Cost chart -->
+    <svg viewBox={`0 0 ${W} ${H}`} class="w-full bg-surface border border-border rounded-lg p-2"
+         role="img" aria-labelledby="cost-title cost-desc">
+      <title id="cost-title">Mean cost per query in USD, by provider</title>
+      <desc id="cost-desc">Bar chart. Ollama is free at 0 dollars (shown as a 2px floor bar). NIM and OpenAI bars scale linearly to the maximum.</desc>
+
+      <text x={LEFT} y={20} font-family="ui-monospace, monospace" font-size="12" class="fill-text">Cost · USD per query</text>
+
+      <line x1={LEFT} y1={TOP + innerH} x2={LEFT + innerW} y2={TOP + innerH} stroke="#242932" stroke-width="1" />
+
+      {providers.map((p, i) => {
+        const x = LEFT + i * gap + (gap - barW) / 2;
+        const h = costBarH(p.mean_cost_usd);
+        const y = TOP + innerH - h;
+        return (
+          <g>
+            <rect x={x} y={y} width={barW} height={h} fill={colors[p.name] || '#7dd3fc'} rx="2" />
+            <text x={x + barW / 2} y={y - 6} text-anchor="middle"
+                  font-family="ui-monospace, monospace" font-size="11"
+                  class="fill-text">{fmtCost(p.mean_cost_usd)}</text>
+            <text x={x + barW / 2} y={TOP + innerH + 18} text-anchor="middle"
+                  font-family="ui-monospace, monospace" font-size="11"
+                  class="fill-text-muted">{p.name}</text>
+          </g>
+        );
+      })}
+    </svg>
+
+    <!-- Latency chart -->
+    <svg viewBox={`0 0 ${W} ${H}`} class="w-full bg-surface border border-border rounded-lg p-2"
+         role="img" aria-labelledby="lat-title lat-desc">
+      <title id="lat-title">p50 latency per provider, milliseconds</title>
+      <desc id="lat-desc">Bar chart. Higher bars are slower. Ollama runs locally on M1 Pro; NIM and OpenAI are hosted.</desc>
+
+      <text x={LEFT} y={20} font-family="ui-monospace, monospace" font-size="12" class="fill-text">Latency · p50 ms</text>
+
+      <line x1={LEFT} y1={TOP + innerH} x2={LEFT + innerW} y2={TOP + innerH} stroke="#242932" stroke-width="1" />
+
+      {providers.map((p, i) => {
+        const x = LEFT + i * gap + (gap - barW) / 2;
+        const h = latencyBarH(p.p50_latency_ms);
+        const y = TOP + innerH - h;
+        return (
+          <g>
+            <rect x={x} y={y} width={barW} height={h} fill={colors[p.name] || '#7dd3fc'} rx="2" />
+            <text x={x + barW / 2} y={y - 6} text-anchor="middle"
+                  font-family="ui-monospace, monospace" font-size="11"
+                  class="fill-text">{fmtLatency(p.p50_latency_ms)}</text>
+            <text x={x + barW / 2} y={TOP + innerH + 18} text-anchor="middle"
+                  font-family="ui-monospace, monospace" font-size="11"
+                  class="fill-text-muted">{p.name}</text>
+          </g>
+        );
+      })}
+    </svg>
+
+  </div>
+
+  <figcaption class="text-text-muted text-xs font-mono mt-3">
+    Same workload, same prompts. Run id <code>{runId}</code>.
+  </figcaption>
+</figure>
+
+<style>
+  .fill-text       { fill: var(--color-text, #e6e9ef); }
+  .fill-text-muted { fill: var(--color-text-muted, #8a94a7); }
+</style>
