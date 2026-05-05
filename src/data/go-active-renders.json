@@ -50,9 +50,9 @@
   {
     "slug": "rock_belaya",
     "label": "Белая скала · Δ168 m",
-    "duration": "queued",
+    "duration": "33.084s",
     "src": "/assets/go-active/render_rock_belaya.mp4",
     "poster": "/assets/go-active/render_rock_belaya_poster.png",
-    "ready": false
+    "ready": true
   }
 ]
