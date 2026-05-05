@@ -128,6 +128,47 @@ const { data } = project;
     </section>
 
     <section class="mt-12">
+      <h2 class="text-xl font-semibold text-accent mb-2">Smart rendering</h2>
+      <p class="text-text-muted text-sm mb-4">
+        The render stage isn't a dumb camera flying at constant speed along the track.
+        Three algorithms shape what the viewer ends up seeing — all running on this same Архыз GPX.
+      </p>
+
+      <h3 class="text-lg font-semibold text-text mt-8 mb-2">Animated flythrough</h3>
+      <p class="text-text-muted text-sm mb-3">
+        Auto-rotating 3D scene; the yellow diamond marks the camera's current position.
+        The production renderer encodes a longer version of this to MP4 with terrain texturing on top.
+      </p>
+      <div class="bg-surface border border-border rounded-lg overflow-hidden" style="height: 480px">
+        <iframe src="/assets/go-active/flythrough_animated.html" class="w-full h-full border-0" loading="lazy" title="Animated flythrough"></iframe>
+      </div>
+
+      <h3 class="text-lg font-semibold text-text mt-10 mb-2">Loop detection</h3>
+      <p class="text-text-muted text-sm mb-3">
+        A loop closure is two points on the track that are spatially close but separated by significant path distance — usually a route that returns to a previous spot. The renderer uses these to plan a "highlight reel" cut: a tight orbit at each closure instead of replaying the whole loop.
+      </p>
+      <div class="bg-surface border border-border rounded-lg overflow-hidden" style="height: 420px">
+        <iframe src="/assets/go-active/loops_detected.html" class="w-full h-full border-0" loading="lazy" title="Loop detection"></iframe>
+      </div>
+      <p class="mt-4 text-sm text-text-muted italic border-l-2 border-accent pl-3">
+        <span class="font-mono uppercase text-xs not-italic mr-2">Observed:</span>
+        On this trek the algorithm flagged <strong class="text-accent">3 closures</strong>: a 120m approach back to the camp area at point 168 ↔ 2736, a tight 24m return at 486 ↔ 2862, and the final 64m closing of the whole route at 204 ↔ 3024.
+      </p>
+
+      <h3 class="text-lg font-semibold text-text mt-10 mb-2">Camera behaviour heuristic</h3>
+      <p class="text-text-muted text-sm mb-3">
+        A boring constant-speed flythrough wastes attention. The heuristic scores each segment for "interestingness" — derived from elevation gradient + heading-change rate over a sliding window — then plans a virtual-camera speed multiplier from that. Slow at peaks and turns, fast across monotonous sections, total render duration preserved.
+      </p>
+      <div class="bg-surface border border-border rounded-lg overflow-hidden" style="height: 380px">
+        <iframe src="/assets/go-active/camera_speed_curve.html" class="w-full h-full border-0" loading="lazy" title="Camera speed plan"></iframe>
+      </div>
+      <p class="mt-4 text-sm text-text-muted italic border-l-2 border-accent pl-3">
+        <span class="font-mono uppercase text-xs not-italic mr-2">Observed:</span>
+        Speed plan ranges <strong class="text-accent">0.47×</strong> (deepest slow-down on the highest peaks) to <strong class="text-accent">1.6×</strong> (cruise across rolling sections). 60 named events — the diamonds in the chart — flagged as worth dwelling on.
+      </p>
+    </section>
+
+    <section class="mt-12">
       <h2 class="text-xl font-semibold text-accent mb-2">Architecture</h2>
       <p class="text-text-muted text-sm mb-4">
         Five-stage async FastAPI pipeline behind a Telegram Mini App.
