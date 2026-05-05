@@ -26,10 +26,10 @@
   {
     "slug": "mountain_alenga",
     "label": "Долина Привидений · г.Аленга 1193 m",
-    "duration": "queued",
+    "duration": "25.0s",
     "src": "/assets/go-active/render_mountain_alenga.mp4",
     "poster": "/assets/go-active/render_mountain_alenga_poster.png",
-    "ready": false
+    "ready": true
   },
   {
     "slug": "coast_golitsyn",
