@@ -154,10 +154,28 @@ const { data } = project;
         Three algorithms shape what the viewer ends up seeing — all running on this same Архыз GPX.
       </p>
 
-      <h3 class="text-lg font-semibold text-text mt-8 mb-2">Animated flythrough</h3>
+      <h3 class="text-lg font-semibold text-text mt-8 mb-2">Real production renders</h3>
       <p class="text-text-muted text-sm mb-3">
-        Auto-rotating 3D scene; the yellow diamond marks the camera's current position.
-        The production renderer encodes a longer version of this to MP4 with terrain texturing on top.
+        Three actual MP4s pulled from the @Vixwibot dialog, each from a different track. The renderer adapts framing and pacing to the route — short city loops, long forest runs, and (after a long render queue) mountain treks. All 720×1280 vertical for Telegram.
+      </p>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div class="relative bg-surface border border-border rounded-lg overflow-hidden flex items-center justify-center" style="height: 360px">
+          <video src="/assets/go-active/render_road.mp4" poster="/assets/go-active/render_road_poster.png" autoplay muted loop playsinline class="h-full w-auto" aria-label="Road / suburban render"></video>
+          <div class="absolute top-3 left-3 px-2 py-1 bg-bg/85 border border-border rounded font-mono text-xs text-text-muted">city · 25 s</div>
+        </div>
+        <div class="relative bg-surface border border-border rounded-lg overflow-hidden flex items-center justify-center" style="height: 360px">
+          <video src="/assets/go-active/render_forest.mp4" poster="/assets/go-active/render_forest_poster.png" autoplay muted loop playsinline class="h-full w-auto" aria-label="Forest / nature render"></video>
+          <div class="absolute top-3 left-3 px-2 py-1 bg-bg/85 border border-border rounded font-mono text-xs text-text-muted">forest · 25 s</div>
+        </div>
+        <div class="relative bg-surface border border-border rounded-lg overflow-hidden flex items-center justify-center" style="height: 360px">
+          <video src="/assets/go-active/render_short.mp4" poster="/assets/go-active/render_short_poster.png" autoplay muted loop playsinline class="h-full w-auto" aria-label="Short loop render"></video>
+          <div class="absolute top-3 left-3 px-2 py-1 bg-bg/85 border border-border rounded font-mono text-xs text-text-muted">short loop · 8 s</div>
+        </div>
+      </div>
+
+      <h3 class="text-lg font-semibold text-text mt-10 mb-2">Animated flythrough (interactive)</h3>
+      <p class="text-text-muted text-sm mb-3">
+        Auto-rotating 3D scene of the same Архыз track in Plotly form — drag to rotate manually. The yellow diamond marks the camera's current position. The production renderer above encodes a longer version of this onto satellite imagery with FFmpeg.
       </p>
       <div class="bg-surface border border-border rounded-lg overflow-hidden" style="height: 480px">
         <iframe src="/assets/go-active/flythrough_animated.html" class="w-full h-full border-0" loading="lazy" title="Animated flythrough"></iframe>
