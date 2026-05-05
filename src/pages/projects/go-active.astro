@@ -8,10 +8,23 @@ import BeforeAfterSplit from '../../components/BeforeAfterSplit.astro';
 import PipelineStage from '../../components/PipelineStage.astro';
 import MetricsDashboard from '../../components/MetricsDashboard.astro';
 import BuiltBy from '../../components/BuiltBy.astro';
+import rendersJson from '../../data/go-active-renders.json';
 
 const project = await getEntry('projects', 'go-active');
 if (!project) throw new Error('go-active project not found in content collection');
 const { data } = project;
+
+interface RenderTile {
+  slug: string;
+  label: string;
+  duration: string;
+  src: string;
+  poster: string;
+  ready: boolean;
+}
+const renders = rendersJson as RenderTile[];
+const readyRenders = renders.filter(r => r.ready);
+const queuedRenders = renders.filter(r => !r.ready);
 ---
 
 <BaseLayout
@@ -156,23 +169,23 @@ const { data } = project;
 
       <h3 class="text-lg font-semibold text-text mt-8 mb-2">Real production renders</h3>
       <p class="text-text-muted text-sm mb-3">
-        Actual MP4s straight from @Vixwibot. The renderer adapts framing and pacing to the terrain — short suburban loops play one way, long mountain treks another. All 720×1280 vertical for Telegram. More variety being rendered as we speak (Архыз trek + Crimean routes from Dmitry Kovinov's blog) — they'll land here as the queue drains.
+        Actual MP4s straight from @Vixwibot. The renderer adapts framing and pacing to the terrain — short suburban loops play one way, mountain treks another. All 720×1280 vertical for Telegram. The mountain and Crimean tiles below get filled in as the bot's queue drains — these renders take 1-3 hours each.
       </p>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <div class="relative bg-surface border border-border rounded-lg overflow-hidden flex items-center justify-center" style="height: 360px">
-          <video src="/assets/go-active/render_forest.mp4" poster="/assets/go-active/render_forest_poster.png" autoplay muted loop playsinline class="h-full w-auto" aria-label="Forest / nature render"></video>
-          <div class="absolute top-3 left-3 px-2 py-1 bg-bg/85 border border-border rounded font-mono text-xs text-text-muted">forest run · 25 s</div>
-        </div>
-        <div class="relative bg-surface border border-border rounded-lg overflow-hidden flex items-center justify-center" style="height: 360px">
-          <video src="/assets/go-active/render_short.mp4" poster="/assets/go-active/render_short_poster.png" autoplay muted loop playsinline class="h-full w-auto" aria-label="Short suburban render"></video>
-          <div class="absolute top-3 left-3 px-2 py-1 bg-bg/85 border border-border rounded font-mono text-xs text-text-muted">suburban · 8 s</div>
-        </div>
-        <div class="relative bg-bg border border-dashed border-border rounded-lg overflow-hidden flex flex-col items-center justify-center text-center px-4" style="height: 360px">
-          <div class="font-mono text-3xl text-accent mb-2">▴</div>
-          <div class="font-mono text-xs text-text-muted uppercase tracking-wider mb-2">mountain render</div>
-          <div class="text-text text-sm leading-snug">Архыз–Теберда trek · 159 km · +7073 m</div>
-          <div class="text-text-muted text-xs mt-2">queued at @Vixwibot — will replace this tile when ready</div>
-        </div>
+        {readyRenders.map(r => (
+          <div class="relative bg-surface border border-border rounded-lg overflow-hidden flex items-center justify-center" style="height: 360px">
+            <video src={r.src} poster={r.poster} autoplay muted loop playsinline class="h-full w-auto" aria-label={r.label}></video>
+            <div class="absolute top-3 left-3 px-2 py-1 bg-bg/85 border border-border rounded font-mono text-xs text-text-muted">{r.label}</div>
+          </div>
+        ))}
+        {queuedRenders.map(r => (
+          <div class="relative bg-bg border border-dashed border-border rounded-lg overflow-hidden flex flex-col items-center justify-center text-center px-4" style="height: 360px">
+            <div class="font-mono text-3xl text-accent mb-2">▴</div>
+            <div class="font-mono text-xs text-text-muted uppercase tracking-wider mb-2">queued render</div>
+            <div class="text-text text-sm leading-snug">{r.label}</div>
+            <div class="text-text-muted text-xs mt-2">rendering at @Vixwibot — auto-replaces when ready</div>
+          </div>
+        ))}
       </div>
 
       <h3 class="text-lg font-semibold text-text mt-10 mb-2">Animated flythrough (interactive)</h3>

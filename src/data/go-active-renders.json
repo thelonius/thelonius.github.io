@@ -1,0 +1,9 @@
+[
+  {"slug": "forest", "label": "forest run · 25 s", "duration": "25s", "src": "/assets/go-active/render_forest.mp4", "poster": "/assets/go-active/render_forest_poster.png", "ready": true},
+  {"slug": "short", "label": "suburban · 8 s", "duration": "8s", "src": "/assets/go-active/render_short.mp4", "poster": "/assets/go-active/render_short_poster.png", "ready": true},
+  {"slug": "arkhyz", "label": "Архыз–Теберда · 159 km · +7073 m", "duration": "queued", "src": "/assets/go-active/render_arkhyz.mp4", "poster": "/assets/go-active/render_arkhyz_poster.png", "ready": false},
+  {"slug": "mountain_alenga", "label": "Долина Привидений · г.Аленга 1193 m", "duration": "queued", "src": "/assets/go-active/render_mountain_alenga.mp4", "poster": "/assets/go-active/render_mountain_alenga_poster.png", "ready": false},
+  {"slug": "coast_golitsyn", "label": "Тропа Голицына · Crimea coast", "duration": "queued", "src": "/assets/go-active/render_coast_golitsyn.mp4", "poster": "/assets/go-active/render_coast_golitsyn_poster.png", "ready": false},
+  {"slug": "kayak_balaklava", "label": "Каякинг Балаклава · sea bay", "duration": "queued", "src": "/assets/go-active/render_kayak_balaklava.mp4", "poster": "/assets/go-active/render_kayak_balaklava_poster.png", "ready": false},
+  {"slug": "rock_belaya", "label": "Белая скала · Δ168 m", "duration": "queued", "src": "/assets/go-active/render_rock_belaya.mp4", "poster": "/assets/go-active/render_rock_belaya_poster.png", "ready": false}
+]
