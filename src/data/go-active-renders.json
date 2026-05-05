@@ -34,10 +34,10 @@
   {
     "slug": "coast_golitsyn",
     "label": "Тропа Голицына · Crimea coast",
-    "duration": "queued",
+    "duration": "19.75s",
     "src": "/assets/go-active/render_coast_golitsyn.mp4",
     "poster": "/assets/go-active/render_coast_golitsyn_poster.png",
-    "ready": false
+    "ready": true
   },
   {
     "slug": "kayak_balaklava",
