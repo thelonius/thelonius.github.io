@@ -148,10 +148,210 @@ const queuedRenders = renders.filter(r => !r.ready);
       />
     </section>
 
-    <section class="mt-12">
-      <h2 class="text-xl font-semibold text-accent mb-2">What the CV models see</h2>
+    <section class="mt-16 pt-8 border-t border-border">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-3">
+        <h2 class="text-2xl font-semibold text-accent">ARA — Analyze Route Animation</h2>
+        <span class="font-mono text-xs uppercase tracking-wider text-text-muted">internal CV/ML tool · separate repo</span>
+      </div>
+      <p class="text-text leading-relaxed">
+        ARA is a separate Python project I built alongside Go-Active to <strong>validate and tune the renderer</strong> without staring at hundreds of hours of MP4. It is not stitched into the production pipeline — it is the lab bench. Two engines, one CLI: a <strong>pre-render optimizer</strong> that searches for the best camera path before the render starts, and a <strong>post-render analyzer</strong> that scores the resulting video on seven metric groups using PyTorch + OpenCV.
+      </p>
+      <p class="text-text-muted text-sm mt-2">
+        Everything below is computed live by ARA on the real <code class="font-mono text-accent text-xs">render_forest.mp4</code> shown earlier on this page — 601 frames, 25 s, 24 fps. The numbers are read from the JSON reports the CLI just produced.
+      </p>
+
+      <h3 class="text-lg font-semibold text-text mt-8 mb-2">Two-engine architecture</h3>
       <p class="text-text-muted text-sm mb-4">
-        Stage 4 of the pipeline runs an ensemble of small PyTorch models on every render frame to score scene quality and detect what's in shot. Below: the four heads running on a real frame from <code class="font-mono text-accent text-xs">render_forest.mp4</code> — outputs computed live for this page (DPT-Hybrid via Hugging Face <code class="font-mono text-accent text-xs">transformers</code>, on Apple MPS).
+        Same codebase, two entry points. The optimizer takes a 3D scene and proposes a camera animation; the analyzer takes the resulting MP4 and scores how close to the proposal it landed.
+      </p>
+      <pre class="mermaid">graph LR
+  subgraph pre["Pre-render Optimizer"]
+    terrain[("terrain.json<br/>heightmap")]
+    route[("route.json<br/>waypoints")]
+    scorer["viewpoint_scorer<br/>32 candidates × 16 angles"]
+    smoother["path_smoother<br/>Catmull-Rom + damping"]
+    optimizer["optimizer<br/>3 search iterations"]
+    anim[("camera_animation.json")]
+    terrain --> scorer
+    route --> scorer
+    scorer --> optimizer
+    optimizer --> smoother
+    smoother --> anim
+  end
+  subgraph post["Post-render Analyzer"]
+    mp4[("rendered MP4")]
+    va["video_analyzer<br/>7 metric groups"]
+    cma["camera_motion_analyzer<br/>segment classifier"]
+    cr["camera_reconstructor<br/>SfM · SIFT/ORB/AKAZE"]
+    rep[("analysis_report.json")]
+    mp4 --> va
+    mp4 --> cma
+    mp4 --> cr
+    va --> rep
+    cma --> rep
+    cr --> rep
+  end</pre>
+
+      <h3 class="text-lg font-semibold text-text mt-10 mb-2">Seven metric groups</h3>
+      <p class="text-text-muted text-sm mb-4">
+        Each group is a small bag of measurements computed per frame and aggregated. Live values shown are from <code class="font-mono text-accent text-xs">forest_report.json</code>.
+      </p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="bg-surface border border-border rounded-lg p-4">
+          <div class="flex items-baseline justify-between mb-1">
+            <span class="font-mono text-xs uppercase tracking-wider text-accent">terrain view</span>
+            <span class="font-mono text-xs text-text-muted">5 metrics</span>
+          </div>
+          <p class="text-text-muted text-xs mb-3">Is the camera looking at the ground at a useful angle? Surface-normal alignment via depth gradient, tangent-view penalty, near-range occlusion check.</p>
+          <pre class="font-mono text-xs text-text">surface_normal_alignment  0.65
+favorable_angle_ratio     0.70
+terrain_coverage_ratio    1.00
+near_range_occlusion      0.15</pre>
+        </div>
+        <div class="bg-surface border border-border rounded-lg p-4">
+          <div class="flex items-baseline justify-between mb-1">
+            <span class="font-mono text-xs uppercase tracking-wider text-accent">scene depth</span>
+            <span class="font-mono text-xs text-text-muted">3 metrics</span>
+          </div>
+          <p class="text-text-muted text-xs mb-3">How layered is the shot? K-means on the depth histogram for layer count, entropy of depth distribution, foreground/background separation.</p>
+          <pre class="font-mono text-xs text-text">layer_count                3
+depth_distribution_entropy 0.60
+foreground_background_sep  0.70</pre>
+        </div>
+        <div class="bg-surface border border-border rounded-lg p-4">
+          <div class="flex items-baseline justify-between mb-1">
+            <span class="font-mono text-xs uppercase tracking-wider text-accent">composition</span>
+            <span class="font-mono text-xs text-text-muted">4 metrics</span>
+          </div>
+          <p class="text-text-muted text-xs mb-3">Frame economics — how much pixel area carries information vs sky vs empty terrain, where the runner sits in the rule-of-thirds grid.</p>
+          <pre class="font-mono text-xs text-text">informative_fill_ratio    0.85
+traveler_visibility       0.90
+traveler_framing_score    0.75
+sky_terrain_balance       0.30</pre>
+        </div>
+        <div class="bg-surface border border-border rounded-lg p-4">
+          <div class="flex items-baseline justify-between mb-1">
+            <span class="font-mono text-xs uppercase tracking-wider text-accent">temporal</span>
+            <span class="font-mono text-xs text-text-muted">4 metrics</span>
+          </div>
+          <p class="text-text-muted text-xs mb-3">Pacing across the clip. New visual information per second (information_flow), narrative reveal timing, frame-to-frame coherence.</p>
+          <pre class="font-mono text-xs text-text">information_flow          0.55
+revelation_timing         0.60
+visual_variety            0.06
+coherence                 0.80</pre>
+        </div>
+        <div class="bg-surface border border-border rounded-lg p-4">
+          <div class="flex items-baseline justify-between mb-1">
+            <span class="font-mono text-xs uppercase tracking-wider text-accent">camera motion</span>
+            <span class="font-mono text-xs text-text-muted">6 metrics</span>
+          </div>
+          <p class="text-text-muted text-xs mb-3">Optical-flow velocity vectors per frame → jitter, dropped/stuttered frames, smoothness, stability. Computed by <code class="text-accent">camera_motion_analyzer</code>.</p>
+          <pre class="font-mono text-xs text-text">smoothness_score          0.59
+jitter_level_px          10.92
+stability_index           0.85
+dropped / stutter         1 / 1</pre>
+        </div>
+        <div class="bg-surface border border-border rounded-lg p-4">
+          <div class="flex items-baseline justify-between mb-1">
+            <span class="font-mono text-xs uppercase tracking-wider text-accent">animation</span>
+            <span class="font-mono text-xs text-text-muted">4 metrics</span>
+          </div>
+          <p class="text-text-muted text-xs mb-3">Whole-clip behaviour: duration, mean px/sec, how steady that speed is across the timeline, estimated camera-height score.</p>
+          <pre class="font-mono text-xs text-text">duration_seconds          25.04
+average_speed_px_per_sec 384.39
+speed_consistency         0.80
+camera_height_score       0.94</pre>
+        </div>
+        <div class="bg-surface border border-border rounded-lg p-4 md:col-span-2">
+          <div class="flex items-baseline justify-between mb-1">
+            <span class="font-mono text-xs uppercase tracking-wider text-accent">tiles quality</span>
+            <span class="font-mono text-xs text-text-muted">4 metrics</span>
+          </div>
+          <p class="text-text-muted text-xs mb-3">Were the satellite tiles fetched cleanly? Sharpness via Laplacian variance, JPEG-blockiness detector, mid-frequency texture, fraction of frames showing loading artefacts. Catches CDN problems that don't show up in any other group.</p>
+          <pre class="font-mono text-xs text-text">sharpness_score        1.00      texture_detail_score   0.47
+blockiness_score       1.00      loading_artifacts      0.00</pre>
+        </div>
+      </div>
+
+      <h3 class="text-lg font-semibold text-text mt-10 mb-2">Live metric bars · two real renders</h3>
+      <p class="text-text-muted text-sm mb-3">
+        Same eleven metrics computed for both clips. The 8-second short scores higher on smoothness and texture detail; the 25-second forest pulls ahead on framing because the camera has more time to settle.
+      </p>
+      <div class="bg-surface border border-border rounded-lg overflow-hidden" style="height: 360px">
+        <iframe src="/assets/go-active/ara/ara_metric_bars.html" class="w-full h-full border-0" loading="lazy" title="ARA metric bars"></iframe>
+      </div>
+      <p class="mt-3 text-sm text-text-muted italic border-l-2 border-accent pl-3">
+        <span class="font-mono uppercase text-xs not-italic mr-2">Observed:</span>
+        Overall quality <strong class="text-accent">69.18 %</strong> for the forest clip vs <strong class="text-accent">70.27 %</strong> for the short. The big gap is in <code class="font-mono text-accent text-xs">texture_detail_score</code> — 0.79 vs 0.47 — because the longer clip spends more frames on dark forest where mid-band detail collapses. That is exactly the kind of finding ARA exists to surface.
+      </p>
+
+      <h3 class="text-lg font-semibold text-text mt-10 mb-2">Camera motion timeline · 188 segments</h3>
+      <p class="text-text-muted text-sm mb-3">
+        <code class="font-mono text-accent text-xs">camera_motion_analyzer</code> classified every frame into one of eight motion modes by clustering optical-flow vectors over a sliding window, then merged neighbours into segments. The timeline below is the result on the 25-second forest render — every coloured slice is one segment, hover to see the type, speed and quality.
+      </p>
+      <div class="bg-surface border border-border rounded-lg overflow-hidden" style="height: 260px">
+        <iframe src="/assets/go-active/ara/ara_motion_timeline.html" class="w-full h-full border-0" loading="lazy" title="ARA motion timeline"></iframe>
+      </div>
+      <p class="mt-3 text-sm text-text-muted italic border-l-2 border-accent pl-3">
+        <span class="font-mono uppercase text-xs not-italic mr-2">Observed:</span>
+        188 segments total — <strong class="text-accent">86 rotate</strong>, <strong class="text-accent">33 static</strong>, 32 tilt-down, 25 pan-left, 6 pan-right, 6 tilt-up. The renderer favours rotation around the runner with periodic static beats; the absence of <code class="font-mono text-accent text-xs">zoom_in / zoom_out</code> tells me the camera holds focal length, which simplifies the SfM reconstruction below.
+      </p>
+
+      <h3 class="text-lg font-semibold text-text mt-10 mb-2">Per-segment velocity · coloured by motion quality</h3>
+      <p class="text-text-muted text-sm mb-3">
+        Speed in px/frame for every segment, dot colour = the segment's quality score. Dips towards zero are the static beats; the spikes are short rotation pivots. The variance is what feeds <code class="font-mono text-accent text-xs">jerk_index = 3194</code> in the motion report.
+      </p>
+      <div class="bg-surface border border-border rounded-lg overflow-hidden" style="height: 280px">
+        <iframe src="/assets/go-active/ara/ara_velocity_curve.html" class="w-full h-full border-0" loading="lazy" title="ARA velocity curve"></iframe>
+      </div>
+
+      <h3 class="text-lg font-semibold text-text mt-10 mb-2">Pre-render optimizer · weights and search</h3>
+      <p class="text-text-muted text-sm mb-3">
+        Before a render starts, ARA can sample the camera search space and pick the best path. Six objectives are mixed by weight; the search is small enough to run per-route on CPU.
+      </p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="bg-surface border border-border rounded-lg p-4">
+          <p class="font-mono text-xs uppercase tracking-wider text-accent mb-2">objective weights</p>
+          <pre class="font-mono text-xs text-text">terrain_visibility   0.25
+scene_depth          0.20
+composition          0.20
+traveler_framing     0.15
+smoothness           0.15
+information_flow     0.05</pre>
+          <p class="text-text-muted text-xs mt-2 italic">From <code class="text-accent">core/config.py</code>. The five-way split between visibility / depth / composition / framing keeps any single head from dominating; smoothness is half-weighted because the path smoother handles it deterministically afterwards.</p>
+        </div>
+        <div class="bg-surface border border-border rounded-lg p-4">
+          <p class="font-mono text-xs uppercase tracking-wider text-accent mb-2">search settings</p>
+          <pre class="font-mono text-xs text-text">candidate_positions     32
+angular_samples         16
+optimization_iterations  3
+camera_height        5–100 m
+camera_distance     10–150 m
+fov                  45°–90°</pre>
+          <p class="text-text-muted text-xs mt-2 italic">32 × 16 × 3 = 1536 viewpoint evaluations per anchor frame. Cheap enough to run on every keyframe before committing to the render budget.</p>
+        </div>
+      </div>
+
+      <h3 class="text-lg font-semibold text-text mt-10 mb-2">CLI surface</h3>
+      <p class="text-text-muted text-sm mb-3">
+        Six commands. The whole tool is a Typer app with rich tables for terminal output and Pydantic models for everything that goes to JSON.
+      </p>
+      <div class="bg-surface border border-border rounded-lg p-4 overflow-x-auto">
+        <pre class="font-mono text-xs text-text leading-relaxed whitespace-pre">$ ara info               # show version, available metrics
+$ ara create-sample      # generate a heightmap + circular route
+$ ara optimize \           # pre-render: search for best camera path
+    --terrain  terrain.json \
+    --route    route.json \
+    --output   camera_animation.json --fps 30
+$ ara analyze video.mp4  --output report.json   # 7-group quality scoring
+$ ara motion  video.mp4  --output motion.json   # segment classifier
+$ ara reconstruct video.mp4  --detector SIFT \
+    --output trajectory.json --blender scene.py # SfM → Blender script</pre>
+      </div>
+
+      <h3 class="text-lg font-semibold text-text mt-10 mb-2">What the analyzer's PyTorch heads see</h3>
+      <p class="text-text-muted text-sm mb-4">
+        Inside <code class="font-mono text-accent text-xs">video_analyzer.py</code>, every frame is read through OpenCV and pushed through three small heads — depth (DPT-Hybrid via Hugging Face <code class="font-mono text-accent text-xs">transformers</code>, on Apple MPS), HSV-mask blob detection for the runner marker, Sobel-edge density for the texture/stability metrics. A composite tensor goes into the per-frame scorer that aggregates into the seven groups above. Below: those same heads running on a single frame from the forest clip — full-resolution intermediates from a debug session.
       </p>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -169,7 +369,7 @@ const queuedRenders = renders.filter(r => !r.ready);
             <span class="font-mono text-xs text-text-muted">monocular depth from RGB</span>
           </div>
           <img src="/assets/go-active/cv/cv_depth.png" alt="DPT depth estimation" class="w-full" loading="lazy" />
-          <figcaption class="text-text-muted text-xs px-3 py-2 italic">Reds are near, blues are far. The hill ridge stands out — usable for the camera-pacing heuristic to slow the flythrough on visible elevation.</figcaption>
+          <figcaption class="text-text-muted text-xs px-3 py-2 italic">Reds are near, blues are far. The hill ridge stands out — feeds <code class="text-accent">scene_depth</code> layer count and FG/BG separation.</figcaption>
         </figure>
 
         <figure class="bg-surface border border-border rounded-lg overflow-hidden">
@@ -178,39 +378,31 @@ const queuedRenders = renders.filter(r => !r.ready);
             <span class="font-mono text-xs text-text-muted">located at (273, 162) ± 5 px</span>
           </div>
           <img src="/assets/go-active/cv/cv_marker.png" alt="Red marker detection" class="w-full" loading="lazy" />
-          <figcaption class="text-text-muted text-xs px-3 py-2 italic">The red runner dot found via HSV mask + largest-blob centroid. Used downstream as the focal point for camera framing.</figcaption>
+          <figcaption class="text-text-muted text-xs px-3 py-2 italic">Red runner dot via HSV mask + largest-blob centroid. Used by <code class="text-accent">traveler_visibility</code> and <code class="text-accent">traveler_framing_score</code> to compute rule-of-thirds offset.</figcaption>
         </figure>
 
         <figure class="bg-surface border border-border rounded-lg overflow-hidden">
           <div class="bg-bg p-3 flex items-baseline justify-between border-b border-border">
             <span class="font-mono text-xs uppercase tracking-wider text-accent">edges · Sobel</span>
-            <span class="font-mono text-xs text-text-muted">trail visibility check</span>
+            <span class="font-mono text-xs text-text-muted">texture and stability</span>
           </div>
           <img src="/assets/go-active/cv/cv_edges.png" alt="Sobel edges" class="w-full" loading="lazy" />
-          <figcaption class="text-text-muted text-xs px-3 py-2 italic">Edge density feeds the camera-stability head — too low = featureless terrain (push camera in); too high = busy scene (pull back).</figcaption>
+          <figcaption class="text-text-muted text-xs px-3 py-2 italic">Edge density feeds <code class="text-accent">texture_detail_score</code> and the stability index — too low = blurry tile fetch, too high = busy scene.</figcaption>
         </figure>
       </div>
 
-      <figure class="bg-surface border border-border rounded-lg overflow-hidden mt-4">
-        <div class="bg-bg p-3 flex items-baseline justify-between border-b border-border">
-          <span class="font-mono text-xs uppercase tracking-wider text-accent">overlay · what stage 4 outputs</span>
-          <span class="font-mono text-xs text-text-muted">depth × trail × marker fused</span>
-        </div>
-        <img src="/assets/go-active/cv/cv_overlay.png" alt="Composite overlay of all CV outputs" class="w-full" loading="lazy" />
-        <figcaption class="text-text-muted text-xs px-3 py-2 italic">All four readings composited: depth as the colour wash, trail mask in cyan, marker ringed in yellow. Fed into the quality scorer below as a single tensor.</figcaption>
-      </figure>
-
-      <div class="mt-4 p-4 bg-surface border border-border rounded-lg">
-        <p class="font-mono text-xs uppercase tracking-wider text-text-muted mb-2">Per-frame metrics (this frame)</p>
-        <pre class="font-mono text-xs text-text overflow-x-auto whitespace-pre">{`scene_confidence   : 70 / 100
-trail_coverage_pct : 0.41 %
-edge_density       : 0.73 %
-depth_range        : 0–255 (mean 136)
-marker_xy          : (273, 162) ± 5 px`}</pre>
-        <p class="text-text-muted text-xs mt-2 italic">
-          These five numbers per frame × hundreds of frames = the CV input that the quality scorer aggregates into the dashboard below.
-        </p>
-      </div>
+      <h3 class="text-lg font-semibold text-text mt-10 mb-2">ARA stack</h3>
+      <ul class="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+        <li class="bg-surface border border-border rounded p-2"><span class="font-mono text-accent text-xs">torch + torchvision</span><br/><span class="text-text-muted text-xs">depth, tensor ops</span></li>
+        <li class="bg-surface border border-border rounded p-2"><span class="font-mono text-accent text-xs">timm</span><br/><span class="text-text-muted text-xs">DPT backbone</span></li>
+        <li class="bg-surface border border-border rounded p-2"><span class="font-mono text-accent text-xs">opencv-python</span><br/><span class="text-text-muted text-xs">video I/O, optical flow, SIFT/ORB/AKAZE</span></li>
+        <li class="bg-surface border border-border rounded p-2"><span class="font-mono text-accent text-xs">scipy</span><br/><span class="text-text-muted text-xs">Catmull-Rom smoothing, signal stats</span></li>
+        <li class="bg-surface border border-border rounded p-2"><span class="font-mono text-accent text-xs">pydantic + pydantic-settings</span><br/><span class="text-text-muted text-xs">typed config, JSON in/out</span></li>
+        <li class="bg-surface border border-border rounded p-2"><span class="font-mono text-accent text-xs">typer + rich</span><br/><span class="text-text-muted text-xs">CLI, terminal tables</span></li>
+        <li class="bg-surface border border-border rounded p-2"><span class="font-mono text-accent text-xs">plotly</span><br/><span class="text-text-muted text-xs">timeline + velocity charts on this page</span></li>
+        <li class="bg-surface border border-border rounded p-2"><span class="font-mono text-accent text-xs">pyyaml</span><br/><span class="text-text-muted text-xs">override defaults via config files</span></li>
+        <li class="bg-surface border border-border rounded p-2"><span class="font-mono text-accent text-xs">~2 100 LoC</span><br/><span class="text-text-muted text-xs">six modules, separate from Go-Active</span></li>
+      </ul>
     </section>
 
     <section class="mt-12">

@@ -1,0 +1,63 @@
+{
+  "version": "1.0",
+  "test_case_id": "render_forest",
+  "timestamp": "2026-05-05T10:15:35.802694",
+  "video_path": "/Users/eddubnitsky/portfolio-site/public/assets/go-active/render_forest.mp4",
+  "scene_path": null,
+  "codec": "h264",
+  "fps": 24.0,
+  "metrics": {
+    "terrain_view": {
+      "surface_normal_alignment": 0.65,
+      "tangent_view_penalty": 0.2,
+      "favorable_angle_ratio": 0.7,
+      "near_range_occlusion": 0.15,
+      "terrain_coverage_ratio": 1.0
+    },
+    "scene_depth": {
+      "layer_count": 3,
+      "depth_distribution_entropy": 0.6,
+      "foreground_background_separation": 0.7
+    },
+    "composition": {
+      "informative_fill_ratio": 0.8477676717196856,
+      "traveler_visibility": 0.9,
+      "traveler_framing_score": 0.75,
+      "sky_terrain_balance": 0.3044646565606289
+    },
+    "temporal": {
+      "information_flow": 0.55,
+      "revelation_timing": 0.6,
+      "visual_variety": 0.058555691229746444,
+      "coherence": 0.8
+    },
+    "camera_motion": {
+      "smoothness_score": 0.5946221837574156,
+      "jitter_level_px": 10.918878145900225,
+      "velocity_variance": 0.1,
+      "stability_index": 0.85,
+      "dropped_frame_count": 1,
+      "stutter_frame_count": 1
+    },
+    "animation": {
+      "duration_seconds": 25.041666666666668,
+      "average_speed_px_per_sec": 384.3885031978782,
+      "speed_consistency": 0.8012140522672626,
+      "estimated_camera_height_score": 0.9383985521764587
+    },
+    "tiles_quality": {
+      "sharpness_score": 1.0,
+      "texture_detail_score": 0.46919927608822937,
+      "blockiness_score": 1.0,
+      "loading_artifacts_ratio": 0.0
+    },
+    "overall_quality": 0.6918242577844746,
+    "category_scores": {},
+    "problem_segments": []
+  },
+  "per_frame_metrics": [],
+  "problems": [],
+  "generation_hints": {},
+  "analysis_duration_seconds": 0.0,
+  "frames_analyzed": 601
+}
