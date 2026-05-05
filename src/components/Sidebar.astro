@@ -22,8 +22,10 @@ const { sections } = Astro.props;
 </nav>
 
 <script>
-  // Scroll-spy: highlight active section as user scrolls
-  const sectionEls = Array.from(document.querySelectorAll('article h2[id]'));
+  // Scroll-spy: highlight active section as user scrolls.
+  // Selector matches both patterns: <h2 id> (markdown-rendered ShowcaseLayout pages)
+  // and <section id> (hand-written pages like proptech.astro).
+  const sectionEls = Array.from(document.querySelectorAll('article h2[id], article section[id]'));
   const linkEls = new Map(
     Array.from(document.querySelectorAll('[data-toc-link]')).map(el => [
       (el as HTMLElement).dataset.tocLink,

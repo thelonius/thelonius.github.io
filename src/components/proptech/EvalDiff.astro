@@ -21,7 +21,8 @@ function classifyLine(raw: string): Line {
   return { kind: 'context', text: raw };
 }
 
-const lines: Line[] = text.split('\n').map(classifyLine);
+// Trim trailing newlines so a file ending in "\n" doesn't add a blank row at the bottom.
+const lines: Line[] = text.replace(/\n+$/, '').split('\n').map(classifyLine);
 
 const styleByKind: Record<LineKind, string> = {
   add:     'bg-green-400/10 text-green-300',
