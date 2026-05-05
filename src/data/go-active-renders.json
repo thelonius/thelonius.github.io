@@ -42,10 +42,10 @@
   {
     "slug": "kayak_balaklava",
     "label": "Каякинг Балаклава · sea bay",
-    "duration": "queued",
+    "duration": "11.167s",
     "src": "/assets/go-active/render_kayak_balaklava.mp4",
     "poster": "/assets/go-active/render_kayak_balaklava_poster.png",
-    "ready": false
+    "ready": true
   },
   {
     "slug": "rock_belaya",
