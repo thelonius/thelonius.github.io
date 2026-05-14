@@ -22,7 +22,6 @@
 
 @layer base {
   html {
-    color-scheme: dark;
     background-color: var(--color-bg);
     color: var(--color-text);
     font-family: var(--font-sans);
