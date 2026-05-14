@@ -16,13 +16,23 @@ export default defineConfig({
   },
   integrations: [
     mermaid({
-      // 'base' theme lets themeVariables take full control
+      // The real colours come from CSS overrides in src/styles/global.css
+      // that bind rendered SVG to live OKLCH tokens. The values below are a
+      // no-op skin used only during mermaid's initial layout pass, before
+      // our @layer components rules apply.
       theme: 'base',
-      // disable auto-switching so our custom palette stays fixed
       autoTheme: false,
       mermaidConfig: {
         themeVariables: {
-          background: '#0f1216',
+          // mermaid v11 requires parseable colour values here — it inverts
+          // them internally to derive secondary palette, so 'currentColor'
+          // or 'transparent' break initialization with "Unsupported color
+          // format" and the diagrams never render.
+          //
+          // We pass valid mid-grey hex placeholders; the actual colours come
+          // from CSS overrides in src/styles/global.css that bind rendered
+          // SVG to live OKLCH tokens via @layer components rules.
+          background: '#1a1e24',
           primaryColor: '#1a1e24',
           primaryBorderColor: '#242932',
           primaryTextColor: '#e6e9ef',

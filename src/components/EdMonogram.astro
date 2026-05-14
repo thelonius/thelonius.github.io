@@ -1,0 +1,501 @@
+---
+// Эд-монограмм-знак. Базовый слой — статичный inline-SVG (виден сразу,
+// работает без JS и без WebGL). Поверх — WebGL-канвас: курсорный след
+// подсвечивает ячейки матрицы, плюс лёгкая ambient-пульсация. Когда GL
+// успешно поднялся, на обёртке появляется data-gl-ready и SVG гаснет.
+//
+// size — сторона квадрата в CSS-px.
+import { MONOGRAM_VIEWBOX, MONOGRAM_PATHS } from '../lib/monogramSvg';
+
+interface Props {
+  size?: number;
+  class?: string;
+  ariaLabel?: string;
+}
+const {
+  size = 360,
+  class: className = '',
+  ariaLabel = 'Ed Dubnitsky monogram',
+} = Astro.props;
+---
+
+<div
+  class:list={['ed-monogram', className]}
+  style={`--ed-monogram-w:${size}px`}
+  role="img"
+  aria-label={ariaLabel}
+>
+  <svg
+    class="ed-monogram__fallback"
+    viewBox={MONOGRAM_VIEWBOX}
+    aria-hidden="true"
+    set:html={MONOGRAM_PATHS}
+  />
+  <canvas
+    data-ed-monogram
+    data-size={size}
+    width={size}
+    height={size}
+    class="ed-monogram__gl"
+    aria-hidden="true"
+  >
+  </canvas>
+</div>
+
+<style>
+  .ed-monogram {
+    position: relative;
+    display: block;
+    width: var(--ed-monogram-w, 360px);
+    height: var(--ed-monogram-w, 360px);
+  }
+  .ed-monogram__fallback,
+  .ed-monogram__gl {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  /* Statichный знак: цвет от темы, мягко гаснет когда GL-слой готов. */
+  .ed-monogram__fallback {
+    fill: var(--color-text);
+    padding: 4%;
+    box-sizing: border-box;
+    transition: opacity 400ms ease, fill 800ms ease;
+  }
+  .ed-monogram__gl {
+    opacity: 0;
+    transition: opacity 400ms ease;
+  }
+  .ed-monogram[data-gl-ready] .ed-monogram__fallback {
+    opacity: 0;
+  }
+  .ed-monogram[data-gl-ready] .ed-monogram__gl {
+    opacity: 1;
+  }
+</style>
+
+<script>
+  import { MONOGRAM_VIEWBOX, MONOGRAM_PATHS } from '../lib/monogramSvg';
+
+  const VERT = `
+    precision highp float;
+    attribute vec2 a_pos;
+    varying vec2 v_uv;
+    void main() {
+      v_uv = a_pos * 0.5 + 0.5;
+      gl_Position = vec4(a_pos, 0.0, 1.0);
+    }
+  `;
+
+  const FRAG = `
+    precision highp float;
+    varying vec2 v_uv;
+    uniform sampler2D u_texPeriph;   // 9 периферийных букв
+    uniform sampler2D u_texCenter;   // большие E и D
+    uniform sampler2D u_field;       // глобальное поле курсорного следа (на весь viewport)
+    uniform vec4  u_screenRect;      // (x, y, w, h) канвы в координатах viewport [0..1]
+    uniform vec3  u_ink;             // основной цвет чернил (var --color-text)
+    uniform vec3  u_accent;          // акцент темы (var --color-accent)
+    uniform float u_time;
+    uniform float u_gradient;        // 0..1 — интенсивность подсветки матрицы
+    uniform float u_trailGain;       // множитель влияния mouse-trail на яркость
+
+    void main() {
+      // ---- per-cell heat для color-модуляции ----
+      // 3×3 матрица — каждая ячейка как отдельный «item» для подсветки.
+      // Heat ячейки берётся ОДИН раз из её центра (per-cell), затем модулирует
+      // ТОЛЬКО цвет — геометрию букв не трогаем, чтобы не рвать формы на
+      // границах ячеек.
+      //
+      // Y-flip: v_uv.y растёт снизу вверх (GL convention), а field покрашен
+      // в HTML convention (y=0 — верх). Поэтому screen-Y инвертим.
+      vec2 cellIdx2 = floor(v_uv * 3.0);
+      float cellIdx = cellIdx2.x + cellIdx2.y * 3.0;
+      vec2 cellCenterUv = (cellIdx2 + 0.5) / 3.0;
+      vec2 cellScreenUv = u_screenRect.xy
+        + vec2(cellCenterUv.x, 1.0 - cellCenterUv.y) * u_screenRect.zw;
+      float cellHeat = smoothstep(0.05, 0.55,
+                                  texture2D(u_field, cellScreenUv).r);
+
+      // оба слоя сэмплятся напрямую, общими плоскостями
+      float aP = texture2D(u_texPeriph, v_uv).a;
+      float aC = texture2D(u_texCenter, v_uv).a;
+
+      // ---- ambient: едва заметная диагональная пульсация по фазе ячейки ----
+      float dPhase = (cellIdx2.x - cellIdx2.y) * 1.05 - u_time * 0.55;
+      float ambient = pow(0.5 + 0.5 * sin(dPhase), 3.0) * 0.14;
+
+      // финальная яркость per-cell: ambient + trail (степпед по ячейкам)
+      float lit = clamp(ambient + u_trailGain * cellHeat, 0.0, 1.0) * u_gradient;
+      vec3 periphInk = mix(u_ink, u_accent, lit);
+
+      // ---- композит: ED на переднем плане, периферия позади ----
+      // standard "over" в premultiplied alpha
+      vec3 col = u_ink * aC + periphInk * aP * (1.0 - aC);
+      float a = aC + aP * (1.0 - aC);
+
+      gl_FragColor = vec4(col, a);
+    }
+  `;
+
+  // ---------- helpers ----------
+  function compile(gl: WebGLRenderingContext, type: number, src: string): WebGLShader {
+    const sh = gl.createShader(type)!;
+    gl.shaderSource(sh, src);
+    gl.compileShader(sh);
+    if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
+      throw new Error('shader compile: ' + gl.getShaderInfoLog(sh));
+    }
+    return sh;
+  }
+
+  // ===========================================================
+  // Глобальное поле курсорного следа.
+  //
+  // Один offscreen 2D-canvas размером FIELD_SIZE × FIELD_SIZE, репрезентует
+  // весь viewport. Каждый кадр умножается на factor < 1 → след затухает.
+  // На pointermove добавляется мягкое пятно. Все инстансы монограммы шарят
+  // это поле и каждый сэмплит свой кусок через u_screenRect.
+  // ===========================================================
+  const FIELD_SIZE = 128;
+  const TRAIL_HALF_LIFE = 0.55;   // сек, время угасания на 50%
+
+  let fieldCanvas: HTMLCanvasElement | null = null;
+  let fieldCtx: CanvasRenderingContext2D | null = null;
+  let lastFieldUpdate = 0;
+  let mouseVpX = -1, mouseVpY = -1; // -1 = курсора нет на странице
+  let lastMouseVpX = -1, lastMouseVpY = -1;
+
+  function ensureField() {
+    if (fieldCanvas) return;
+    fieldCanvas = document.createElement('canvas');
+    fieldCanvas.width = FIELD_SIZE;
+    fieldCanvas.height = FIELD_SIZE;
+    fieldCtx = fieldCanvas.getContext('2d', { willReadFrequently: false });
+    if (!fieldCtx) return;
+    fieldCtx.fillStyle = '#000';
+    fieldCtx.fillRect(0, 0, FIELD_SIZE, FIELD_SIZE);
+
+    window.addEventListener('pointermove', (e: PointerEvent) => {
+      mouseVpX = e.clientX / window.innerWidth;
+      mouseVpY = e.clientY / window.innerHeight;
+    }, { passive: true });
+    window.addEventListener('pointerout', (e: PointerEvent) => {
+      // when leaving the document area entirely
+      if (!e.relatedTarget) { mouseVpX = -1; mouseVpY = -1; }
+    });
+
+    lastFieldUpdate = performance.now() / 1000;
+  }
+
+  // Обновляет поле — затухание + новые пятна на пути курсора.
+  // Возвращает true если в этом кадре поле менялось (нужен re-upload в GL).
+  function tickField(): boolean {
+    if (!fieldCtx || !fieldCanvas) return false;
+    const now = performance.now() / 1000;
+    const dt = Math.min(0.1, now - lastFieldUpdate);
+    lastFieldUpdate = now;
+
+    // multiplicative fade: умножаем поле на factor = exp(-ln2 * dt / halflife)
+    // через destination-in с прозрачным fillRect.
+    const factor = Math.exp(-(Math.LN2 / TRAIL_HALF_LIFE) * dt);
+    fieldCtx.globalCompositeOperation = 'destination-in';
+    fieldCtx.fillStyle = `rgba(0,0,0,${factor})`;
+    fieldCtx.fillRect(0, 0, FIELD_SIZE, FIELD_SIZE);
+
+    let painted = false;
+    if (mouseVpX >= 0 && mouseVpY >= 0) {
+      const x = mouseVpX * FIELD_SIZE;
+      const y = mouseVpY * FIELD_SIZE;
+
+      fieldCtx.globalCompositeOperation = 'lighter';
+
+      // Если есть предыдущая позиция — рисуем линию-облако между ними
+      // (сглаживает быстрые движения)
+      if (lastMouseVpX >= 0 && lastMouseVpY >= 0) {
+        const x0 = lastMouseVpX * FIELD_SIZE;
+        const y0 = lastMouseVpY * FIELD_SIZE;
+        // несколько шагов вдоль вектора
+        const dist = Math.hypot(x - x0, y - y0);
+        const steps = Math.max(1, Math.ceil(dist / 2));
+        for (let i = 0; i <= steps; i++) {
+          const t = i / steps;
+          const ix = x0 + (x - x0) * t;
+          const iy = y0 + (y - y0) * t;
+          stamp(fieldCtx, ix, iy);
+        }
+      } else {
+        stamp(fieldCtx, x, y);
+      }
+      painted = true;
+
+      lastMouseVpX = mouseVpX;
+      lastMouseVpY = mouseVpY;
+    } else {
+      lastMouseVpX = -1;
+      lastMouseVpY = -1;
+    }
+
+    return painted || factor < 0.999; // изменилось из-за пятна или из-за угасания
+  }
+
+  function stamp(ctx: CanvasRenderingContext2D, x: number, y: number) {
+    const R = 7;
+    const g = ctx.createRadialGradient(x, y, 0, x, y, R);
+    g.addColorStop(0, 'rgba(255, 80, 80, 0.55)');     // .r — основной канал-носитель
+    g.addColorStop(0.4, 'rgba(255, 40, 40, 0.22)');
+    g.addColorStop(1, 'rgba(255, 0, 0, 0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(x, y, R, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Resolve a CSS color string (любой формат: rgb/hex/oklch/lab/etc.) → [r,g,b] 0..1.
+  // Через canvas 2D — он гарантированно нормализует и сэмплит как 8-битный sRGB.
+  let _colorCanvas: HTMLCanvasElement | null = null;
+  let _colorCtx: CanvasRenderingContext2D | null = null;
+  function colorFromVar(varName: string, fallback: string): [number, number, number] {
+    const tmp = document.createElement('div');
+    tmp.style.color = `var(${varName}, ${fallback})`;
+    document.body.appendChild(tmp);
+    const css = getComputedStyle(tmp).color;
+    document.body.removeChild(tmp);
+
+    if (!_colorCanvas) {
+      _colorCanvas = document.createElement('canvas');
+      _colorCanvas.width = 1; _colorCanvas.height = 1;
+      _colorCtx = _colorCanvas.getContext('2d');
+    }
+    if (!_colorCtx) return [0.9, 0.9, 0.9];
+    _colorCtx.fillStyle = '#000';
+    _colorCtx.fillRect(0, 0, 1, 1);
+    _colorCtx.fillStyle = css;
+    _colorCtx.fillRect(0, 0, 1, 1);
+    const d = _colorCtx.getImageData(0, 0, 1, 1).data;
+    return [d[0]! / 255, d[1]! / 255, d[2]! / 255];
+  }
+
+  function inkFromTheme(): [number, number, number] {
+    return colorFromVar('--color-text', '#e6e6e6');
+  }
+  function accentFromTheme(): [number, number, number] {
+    return colorFromVar('--color-accent', '#4ad7e0');
+  }
+
+  // Render SVG into a square offscreen canvas, fit with letterbox.
+  // ВАЖНО: используем ОБЩИЙ viewBox (как в оригинале), а не bounding box
+  // подмножества — иначе слои разъедутся при композиции.
+  function rasterize(svg: string, sizePx: number): Promise<HTMLCanvasElement> {
+    return new Promise((resolve, reject) => {
+      const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+      img.onload = () => {
+        const oc = document.createElement('canvas');
+        oc.width = sizePx; oc.height = sizePx;
+        const ctx = oc.getContext('2d')!;
+        ctx.clearRect(0, 0, sizePx, sizePx);
+        const a = img.naturalWidth / img.naturalHeight;
+        const pad = sizePx * 0.04;
+        const innerW = sizePx - pad * 2, innerH = sizePx - pad * 2;
+        let dw, dh;
+        if (a > 1) { dw = innerW; dh = innerW / a; }
+        else        { dw = innerH * a; dh = innerH; }
+        const dx = (sizePx - dw) / 2;
+        const dy = (sizePx - dh) / 2;
+        ctx.drawImage(img, dx, dy, dw, dh);
+        URL.revokeObjectURL(url);
+        resolve(oc);
+      };
+      img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
+      img.src = url;
+    });
+  }
+
+  // Разбираем общий список path-тегов на два суб-SVG с ОБЩИМ viewBox:
+  // периферия (D-U-B-N-I-T-S-K-Y, первые 9) и центр (большие E и D,
+  // последние 2). Общий viewBox критичен — иначе при rasterize каждый
+  // кусок отъедет в центр своей текстуры.
+  function splitMonogramSvg(): { periph: string; center: string } {
+    const head = '<?xml version="1.0" encoding="UTF-8"?>'
+               + `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${MONOGRAM_VIEWBOX}">`;
+    const tail = '</svg>';
+    const all = MONOGRAM_PATHS.match(/<path\b[^>]*\/>/g) || [];
+    return {
+      periph: head + all.slice(0, 9).join('') + tail,
+      center: head + all.slice(9, 11).join('') + tail,
+    };
+  }
+
+  function uploadTexture(gl: WebGLRenderingContext, oc: HTMLCanvasElement): WebGLTexture {
+    const tex = gl.createTexture()!;
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, oc);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    return tex;
+  }
+
+  // Поднимает WebGL-слой над statichным SVG. Любой ранний выход оставляет
+  // SVG-фоллбэк видимым — обёртка не получает data-gl-ready.
+  async function mount(canvas: HTMLCanvasElement) {
+    const wrapper = canvas.closest('.ed-monogram') as HTMLElement | null;
+    const size = parseInt(canvas.dataset.size || '360', 10);
+
+    // prefers-reduced-motion: эффекты не нужны, statichный SVG и есть знак.
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const gl = canvas.getContext('webgl', {
+      premultipliedAlpha: true,
+      antialias: false,
+      preserveDrawingBuffer: false,
+    }) as WebGLRenderingContext | null;
+    if (!gl) return;
+
+    let program: WebGLProgram;
+    try {
+      const v = compile(gl, gl.VERTEX_SHADER, VERT);
+      const f = compile(gl, gl.FRAGMENT_SHADER, FRAG);
+      program = gl.createProgram()!;
+      gl.attachShader(program, v); gl.attachShader(program, f);
+      gl.linkProgram(program);
+      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        throw new Error('link: ' + gl.getProgramInfoLog(program));
+      }
+    } catch (e) {
+      console.warn('[ed-monogram]', e);
+      return;
+    }
+    gl.useProgram(program);
+
+    // fullscreen triangle
+    const buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
+    const a_pos = gl.getAttribLocation(program, 'a_pos');
+    gl.enableVertexAttribArray(a_pos);
+    gl.vertexAttribPointer(a_pos, 2, gl.FLOAT, false, 0, 0);
+
+    const uTexP        = gl.getUniformLocation(program, 'u_texPeriph');
+    const uTexC        = gl.getUniformLocation(program, 'u_texCenter');
+    const uField       = gl.getUniformLocation(program, 'u_field');
+    const uScreenRect  = gl.getUniformLocation(program, 'u_screenRect');
+    const uInk         = gl.getUniformLocation(program, 'u_ink');
+    const uAccent      = gl.getUniformLocation(program, 'u_accent');
+    const uTime        = gl.getUniformLocation(program, 'u_time');
+    const uGradient    = gl.getUniformLocation(program, 'u_gradient');
+    const uTrailGain   = gl.getUniformLocation(program, 'u_trailGain');
+
+    gl.disable(gl.DEPTH_TEST);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+
+    // load + upload two textures (periph + center)
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const texSize = Math.min(1024, Math.max(512, size * dpr * 2));
+    let texPeriph: WebGLTexture, texCenter: WebGLTexture;
+    try {
+      const { periph, center } = splitMonogramSvg();
+      const [ocP, ocC] = await Promise.all([
+        rasterize(periph, texSize),
+        rasterize(center, texSize),
+      ]);
+      texPeriph = uploadTexture(gl, ocP);
+      texCenter = uploadTexture(gl, ocC);
+    } catch (e) {
+      console.warn('[ed-monogram] svg load failed', e);
+      return;
+    }
+
+    // field texture (mouse trail across viewport)
+    ensureField();
+    const texField = gl.createTexture()!;
+    gl.bindTexture(gl.TEXTURE_2D, texField);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    // initial upload (empty field)
+    if (fieldCanvas) {
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, fieldCanvas);
+    } else {
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, FIELD_SIZE, FIELD_SIZE, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    }
+
+    function resize() {
+      const w = Math.floor(size * dpr);
+      canvas.width = w; canvas.height = w;
+      gl!.viewport(0, 0, w, w);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    const t0 = performance.now() / 1000;
+    function frame() {
+      const t = (performance.now() / 1000) - t0;
+
+      // update mouse-trail field and re-upload if changed
+      const changed = tickField();
+      if (changed && fieldCanvas) {
+        gl!.activeTexture(gl!.TEXTURE2);
+        gl!.bindTexture(gl!.TEXTURE_2D, texField);
+        gl!.pixelStorei(gl!.UNPACK_FLIP_Y_WEBGL, false);
+        gl!.pixelStorei(gl!.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+        gl!.texImage2D(gl!.TEXTURE_2D, 0, gl!.RGBA, gl!.RGBA, gl!.UNSIGNED_BYTE, fieldCanvas);
+      }
+
+      // canvas position in viewport [0..1] for field sampling
+      const rect = canvas.getBoundingClientRect();
+      const sx = rect.left / window.innerWidth;
+      const sy = rect.top / window.innerHeight;
+      const sw = rect.width / window.innerWidth;
+      const sh = rect.height / window.innerHeight;
+
+      const ink = inkFromTheme();
+      const accent = accentFromTheme();
+      gl!.clearColor(0, 0, 0, 0);
+      gl!.clear(gl!.COLOR_BUFFER_BIT);
+      gl!.activeTexture(gl!.TEXTURE0);
+      gl!.bindTexture(gl!.TEXTURE_2D, texPeriph);
+      gl!.uniform1i(uTexP, 0);
+      gl!.activeTexture(gl!.TEXTURE1);
+      gl!.bindTexture(gl!.TEXTURE_2D, texCenter);
+      gl!.uniform1i(uTexC, 1);
+      gl!.activeTexture(gl!.TEXTURE2);
+      gl!.bindTexture(gl!.TEXTURE_2D, texField);
+      gl!.uniform1i(uField, 2);
+      gl!.uniform4f(uScreenRect, sx, sy, sw, sh);
+      gl!.uniform3f(uInk, ink[0]!, ink[1]!, ink[2]!);
+      gl!.uniform3f(uAccent, accent[0]!, accent[1]!, accent[2]!);
+      gl!.uniform1f(uTime, t);
+      gl!.uniform1f(uGradient, 0.95);
+      gl!.uniform1f(uTrailGain, 1.4);
+      gl!.drawArrays(gl!.TRIANGLES, 0, 3);
+
+      requestAnimationFrame(frame);
+    }
+    frame();
+
+    // первый кадр нарисован — показываем GL-слой, гасим SVG-фоллбэк
+    if (wrapper) wrapper.dataset.glReady = '1';
+  }
+
+  function init() {
+    document.querySelectorAll<HTMLCanvasElement>('canvas[data-ed-monogram]').forEach(mount);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+</script>

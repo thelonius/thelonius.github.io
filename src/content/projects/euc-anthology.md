@@ -6,10 +6,9 @@ period: 2025-2026 · live
 status: live
 year: 2026
 hero:
-  type: github-og
-  src: thelonius/euc-anthology
-  alt: EUC-Anthology GitHub repository preview
-  note: English translation in progress · live iframe will swap in when EN ships
+  type: iframe
+  src: https://thelonius.github.io/euc-anthology/?lang=en
+  alt: EUC-Anthology — interactive book on reverse-engineered EUC firmware
 keyMetric: 14 chapters · 440 KB gzip · 0 backend
 stack:
   - Ghidra
@@ -33,6 +32,9 @@ metrics:
     value: Begode ET Max (STM32F405)
     hint: firmware decompiled in Ghidra
 links:
+  - label: Live (EN)
+    url: https://thelonius.github.io/euc-anthology/?lang=en
+    kind: demo
   - label: Live (RU)
     url: https://thelonius.github.io/euc-anthology/
     kind: demo
@@ -78,4 +80,74 @@ graph LR
 ```
 
 Preact instead of React keeps the bundle small (~1.35 MB total, 440 KB gzipped). Simulator components are reusable — the FOC simulator from chapter 8 also drives the field-weakening visualisation in chapter 10. No backend, deployed automatically through GitHub Actions on push to `main`.
+
+## Highlights
+
+Three chapters that show different layers of the stack — control, math, and physics.
+
+### Balance · the PD loop that keeps the wheel up
+
+After IMU fusion, every 50 µs the firmware reads the lean angle θ and angular velocity ω and computes a target current for the torque-producing winding: `Iq_target = -(Kp·θ + Kd·ω)`. No integral term — the gravity load is symmetric around vertical, so steady-state error stays zero. The simulator lets you drag Kp and Kd; below 80 Kp the wheel falls, above 400 it oscillates with pedal buzz.
+
+```mermaid
+graph TB
+  imu[IMU θ, ω<br/>complementary filter]
+  pd["PD controller<br/>Iq = -(Kp·θ + Kd·ω)"]
+  foc[FOC stage]
+  motor[Three-phase motor]
+
+  imu -->|sensor fusion| pd
+  pd -->|target current| foc
+  foc -->|PWM duty cycles| motor
+  motor -.->|physical response| imu
+```
+
+[Play chapter VII →](https://thelonius.github.io/euc-anthology/?lang=en#balance)
+
+### The Flux · SVPWM and 15 % of headroom for free
+
+After the inverse transforms (d/q → α/β → A/B/C) the FOC stage has three reference voltages it wants on the windings. Drive them as plain sinusoids and the usable bus voltage caps out at V_bus/2 per phase — modulation index m = 1.00. SVPWM subtracts the common-mode component `(max + min) / 2` from every phase before PWM. Because the same offset comes off all three, the **line-to-line voltage** — the only thing the motor actually feels — is unchanged. But the three signals now fit into the ±V_bus/2 band with slack, raising the usable m to 2/√3 ≈ 1.155. That's ~15 % extra torque from the same battery, no hardware change. The firmware does the saturation clipping in `Control_SVPWM_Modulation_Limit` at `0x00014C00` with an inverse-square-root lookup.
+
+```mermaid
+graph TB
+  abc[V_a, V_b, V_c<br/>three sinusoids 120° apart]
+  off["common-mode<br/>(max + min) / 2"]
+  sub[Subtract offset<br/>from each phase]
+  pwm[TIM1 ch1 / ch2 / ch3<br/>PWM duty cycles]
+  motor[3-phase bridge → motor]
+  note[line-to-line voltage<br/>unchanged]
+
+  abc --> off
+  abc --> sub
+  off --> sub
+  sub -->|m_max 1.00 → 1.155| pwm
+  pwm --> motor
+  sub -.- note
+```
+
+[Play chapter VIII →](https://thelonius.github.io/euc-anthology/?lang=en#foc)
+
+### Heat · the thermal model that bites back
+
+I²R losses dump roughly 1,350 W of waste heat into the windings at 100 A phase current. With no active cooling, only thermal mass and conductivity stop the motor from melting. The firmware models two nodes — winding (~800 J/K, fast) and stator iron (~5,000 J/K, slow) — with thermal resistance R_wi ≈ 0.15 K/W between them and R_ia ≈ 1.2 K/W to ambient. At 60 °C the tiltback ramp starts; at 75 °C the wheel cuts torque. The simulator lets you crank the current and watch the curve.
+
+```mermaid
+graph TB
+  current[Phase current<br/>I²R loss ≈ 1350 W]
+  winding[Winding node<br/>C ≈ 800 J/K]
+  iron[Stator iron<br/>C ≈ 5000 J/K]
+  ambient[Ambient air]
+  guard{T_winding}
+  tiltback[Tiltback ramp]
+  critical[Critical cut]
+
+  current -->|heat injection| winding
+  winding -->|R_wi 0.15 K/W| iron
+  iron -->|R_ia 1.2 K/W| ambient
+  winding --> guard
+  guard -->|≥ 60 °C| tiltback
+  guard -->|≥ 75 °C| critical
+```
+
+[Play chapter XII →](https://thelonius.github.io/euc-anthology/?lang=en#thermal)
 

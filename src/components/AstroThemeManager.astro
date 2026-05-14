@@ -1,0 +1,64 @@
+---
+/**
+ * Deferred theme manager.
+ *
+ * AstroThemeBoot has already painted the initial palette and seeded
+ * window.__astroTheme. This script schedules a recompute at the end of
+ * the current planetary hour (so the accent hue rotates), and listens
+ * for OS light/dark flips via `prefers-color-scheme`. On tab refocus
+ * we recompute immediately so a stale palette doesn't linger.
+ *
+ * CSS transitions on theme-aware properties handle the actual fade.
+ */
+---
+<script>
+  type AstroThemeApi = {
+    computeState: (now: Date, lat: number, lon: number) => any;
+    applyState: (state: any) => void;
+    coords: [number, number];
+    state: any;
+  };
+
+  declare global {
+    interface Window {
+      __astroTheme?: AstroThemeApi;
+    }
+  }
+
+  function refresh() {
+    const astro = window.__astroTheme;
+    if (!astro) return;
+    const now = new Date();
+    const state = astro.computeState(now, astro.coords[0], astro.coords[1]);
+    astro.applyState(state);
+    astro.state = state;
+    window.dispatchEvent(new CustomEvent('astro-theme-change', { detail: state }));
+  }
+
+  function tick() {
+    refresh();
+    schedule();
+  }
+
+  function schedule() {
+    const astro = window.__astroTheme;
+    if (!astro) return;
+    const next = astro.state.hour.phaseEndTs;
+    const ms = Math.max(1000, next - Date.now() + 250);
+    setTimeout(tick, ms);
+  }
+
+  // OS light/dark flip — fires when the user toggles their system theme
+  // or when their scheduled auto-switch (macOS night-shift / Windows night
+  // light / Android dark mode timer) crosses over.
+  const mql = window.matchMedia('(prefers-color-scheme: dark)');
+  mql.addEventListener('change', refresh);
+
+  // Tab refocus: catch missed timers and OS flips that happened while
+  // the page was backgrounded.
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) refresh();
+  });
+
+  schedule();
+</script>

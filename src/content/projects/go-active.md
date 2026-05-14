@@ -64,7 +64,7 @@ The Telegram Mini App is the user interface: upload GPX, see your video, share. 
 ## Architecture
 
 ```mermaid
-graph LR
+graph TB
   user[Telegram user] -->|GPX upload| bot[Telegram Bot API]
   bot --> api[FastAPI]
   api --> s1[1. Parse]

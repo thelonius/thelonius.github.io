@@ -26,12 +26,23 @@ const { sections } = Astro.props;
   // Selector matches both patterns: <h2 id> (markdown-rendered ShowcaseLayout pages)
   // and <section id> (hand-written pages like proptech.astro).
   const sectionEls = Array.from(document.querySelectorAll('article h2[id], article section[id]'));
+  const presentIds = new Set(sectionEls.map(el => el.id));
   const linkEls = new Map(
     Array.from(document.querySelectorAll('[data-toc-link]')).map(el => [
       (el as HTMLElement).dataset.tocLink,
       el as HTMLElement,
     ])
   );
+
+  // Hide TOC entries whose section isn't on this page (so the static list
+  // in ShowcaseLayout can carry optional sections without breaking pages
+  // that don't have them).
+  linkEls.forEach((link, id) => {
+    if (id && !presentIds.has(id)) {
+      const li = link.closest('li');
+      if (li) li.style.display = 'none';
+    }
+  });
 
   if (sectionEls.length > 0 && linkEls.size > 0) {
     const observer = new IntersectionObserver(

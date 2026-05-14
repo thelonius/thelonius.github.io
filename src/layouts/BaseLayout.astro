@@ -1,6 +1,8 @@
 ---
 import '../styles/global.css';
 import LangSwitcher from '../components/LangSwitcher.astro';
+import AstroThemeBoot from '../components/AstroThemeBoot.astro';
+import AstroThemeManager from '../components/AstroThemeManager.astro';
 import type { Lang } from '../i18n/ui';
 
 export interface Props {
@@ -49,10 +51,13 @@ const ogLocale = lang === 'ru' ? 'ru_RU' : 'en_US';
   <meta name="twitter:title" content={title} />
   <meta name="twitter:description" content={description} />
   <meta name="twitter:image" content={ogImageURL} />
+
+  <AstroThemeBoot />
 </head>
 <body class="bg-bg text-text font-sans">
   {showLangSwitcher && <LangSwitcher />}
   <slot />
+  <AstroThemeManager />
   <!--
     GoatCounter analytics. Sign up at https://goatcounter.com (free tier),
     register code "eddubnitsky" (or your choice), then update the data-goatcounter URL.

@@ -2,15 +2,24 @@
 @plugin "@tailwindcss/typography";
 
 @theme {
-  /* Color palette */
-  --color-bg: #0f1216;
-  --color-surface: #1a1e24;
-  --color-text: #e6e9ef;
-  --color-text-muted: #8a94a7;
-  --color-accent: #7dd3fc;
-  --color-border: #242932;
-  --color-success: #86efac;
-  --color-warn: #fbbf24;
+  /*
+   * Initial OKLCH palette — used for the first frame before AstroThemeBoot
+   * runs (server-rendered HTML, JS disabled, or robots). AstroThemeBoot
+   * overwrites these on :root inline-style before first paint; AstroThemeManager
+   * rotates them on planetary-hour and civil-twilight boundaries.
+   *
+   * Hues here mirror the Moon day-ruler / Mercury hour-ruler defaults.
+   * The actual lightness / chroma per role come from PALETTE_SPEC in
+   * src/lib/themeEngine.ts — single source of truth.
+   */
+  --color-bg: oklch(14% 0.012 245);
+  --color-surface: oklch(19% 0.018 245);
+  --color-text: oklch(92% 0.005 245);
+  --color-text-muted: oklch(68% 0.020 245);
+  --color-accent: oklch(75% 0.140 220);
+  --color-border: oklch(30% 0.018 245);
+  --color-success: oklch(78% 0.140 145);
+  --color-warn: oklch(80% 0.140 75);
 
   /* Font families — override Tailwind's defaults for font-sans / font-mono utilities */
   --font-sans: -apple-system, BlinkMacSystemFont, Inter, "Segoe UI", sans-serif;
@@ -27,9 +36,18 @@
     font-family: var(--font-sans);
     font-size: 16px;
     line-height: 1.6;
+    /* Hour boundary and dawn/dusk fades. */
+    transition:
+      background-color 800ms ease,
+      color 800ms ease;
   }
   body {
     min-height: 100vh;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    transition:
+      background-color 800ms ease,
+      color 800ms ease;
   }
   code, pre {
     font-family: var(--font-mono);
@@ -37,5 +55,112 @@
   ::selection {
     background-color: var(--color-accent);
     color: var(--color-bg);
+  }
+  /* Theme-aware Tailwind utility classes fade smoothly when tokens change. */
+  [class*="bg-bg"],
+  [class*="bg-surface"],
+  [class*="bg-accent"],
+  [class*="text-text"],
+  [class*="text-accent"],
+  [class*="text-success"],
+  [class*="text-warn"],
+  [class*="border-border"],
+  [class*="border-accent"] {
+    transition:
+      background-color 800ms ease,
+      color 800ms ease,
+      border-color 800ms ease,
+      fill 800ms ease,
+      stroke 800ms ease;
+  }
+}
+
+/*
+ * Mermaid diagrams: bypass mermaid's frozen themeVariables and bind rendered
+ * SVG to live OKLCH tokens. Because mermaid runs client-side after first
+ * paint, themeVariables in astro.config.mjs are only used until these rules
+ * take precedence — and they fade through the same 800 ms transition.
+ */
+@layer components {
+  pre.mermaid svg,
+  .mermaid svg {
+    background: transparent !important;
+  }
+  .mermaid svg,
+  .mermaid svg * {
+    transition:
+      fill 800ms ease,
+      stroke 800ms ease,
+      color 800ms ease;
+  }
+  .mermaid .node rect,
+  .mermaid .node polygon,
+  .mermaid .node circle,
+  .mermaid .node ellipse,
+  .mermaid .node path,
+  .mermaid .cluster rect {
+    fill: var(--color-surface) !important;
+    stroke: var(--color-border) !important;
+  }
+  .mermaid .node .label,
+  .mermaid .node text,
+  .mermaid .nodeLabel,
+  .mermaid .cluster .label,
+  .mermaid .cluster text {
+    color: var(--color-text) !important;
+    fill: var(--color-text) !important;
+  }
+  .mermaid .label foreignObject div {
+    color: var(--color-text) !important;
+  }
+  .mermaid .flowchart-link,
+  .mermaid path.flowchart-link,
+  .mermaid .edgePath path.path,
+  .mermaid .edgePath path,
+  .mermaid .messageLine0,
+  .mermaid .messageLine1,
+  .mermaid line.messageLine,
+  .mermaid .relation {
+    stroke: var(--color-accent) !important;
+    fill: none !important;
+  }
+  .mermaid marker path,
+  .mermaid defs marker path,
+  .mermaid .arrowheadPath,
+  .mermaid .arrowMarkerPath {
+    fill: var(--color-accent) !important;
+    stroke: var(--color-accent) !important;
+  }
+  .mermaid .edgeLabel rect,
+  .mermaid .edgeLabel polygon {
+    fill: var(--color-bg) !important;
+    stroke: none !important;
+  }
+  /*
+   * mermaid bakes themeVariables.edgeLabelBackground into the inline
+   * style of the inner <p> tag inside foreignObject — neither the wrapper
+   * <span class="edgeLabel"> nor the surrounding <div class="labelBkg">
+   * cover the <p> background, so it would stay at the old hex value.
+   * Force <p> transparent so the wrapper's --color-bg shows through.
+   */
+  .mermaid .edgeLabel p,
+  .mermaid .label foreignObject p,
+  .mermaid .nodeLabel p,
+  .mermaid .label p {
+    background-color: transparent !important;
+    color: inherit !important;
+    margin: 0 !important;
+  }
+  .mermaid .edgeLabel,
+  .mermaid .edgeLabel foreignObject div,
+  .mermaid .edgeLabel text,
+  .mermaid .edgeLabel span {
+    background-color: var(--color-bg) !important;
+    color: var(--color-text-muted) !important;
+    fill: var(--color-text-muted) !important;
+  }
+  .mermaid .titleText,
+  .mermaid text.title {
+    fill: var(--color-text) !important;
   }
 }

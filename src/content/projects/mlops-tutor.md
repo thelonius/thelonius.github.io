@@ -59,7 +59,7 @@ Every code block in any answer gets an "explain this code" action — the tutor 
 ## Architecture
 
 ```mermaid
-graph LR
+graph TB
   client[Vanilla JS client + marked.js + highlight.js] -->|HTTP POST| flask[Flask app]
   flask -->|OpenAI SDK| groq[Groq endpoint]
   groq --> primary{Llama 3.3 70B}

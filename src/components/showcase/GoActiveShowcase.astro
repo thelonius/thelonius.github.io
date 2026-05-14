@@ -207,7 +207,7 @@ const cvImages = [
 
       <h3 class="text-lg font-semibold text-text mt-8 mb-2">{c.ara.twoEngineH3}</h3>
       <p class="text-text-muted text-sm mb-4">{c.ara.twoEngineP}</p>
-      <pre class="mermaid">graph LR
+      <pre class="mermaid">graph TB
   subgraph pre["Pre-render Optimizer"]
     terrain[("terrain.json<br/>heightmap")]
     route[("route.json<br/>waypoints")]
@@ -408,7 +408,7 @@ $ ara reconstruct video.mp4  --detector SIFT \
     <section class="mt-12">
       <h2 class="text-xl font-semibold text-accent mb-2">{c.architecture.h2}</h2>
       <p class="text-text-muted text-sm mb-4">{c.architecture.p1}</p>
-      <pre class="mermaid">graph LR
+      <pre class="mermaid">graph TB
   user[Telegram user] -->|GPX upload| bot[Telegram Bot API]
   bot --> api[FastAPI]
   api --> s1[1. Parse]

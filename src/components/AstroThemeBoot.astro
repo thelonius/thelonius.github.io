@@ -1,0 +1,178 @@
+---
+/**
+ * Inline pre-paint theme bootstrap.
+ *
+ * Runs synchronously where placed in <head>, before the stylesheet is
+ * processed and before first paint. Resolves coordinates from Intl
+ * timezone, computes today's planetary hour, reads light/dark from the
+ * OS via `prefers-color-scheme`, writes OKLCH tokens to :root inline
+ * style. No network, no permissions, no async — sub-millisecond.
+ *
+ * Exposes window.__astroTheme so AstroThemeManager (deferred module)
+ * can re-use the same data and algorithms for scheduled transitions.
+ */
+import { PLANET_HUES, WEEKDAY_RULERS, CHALDEAN_ORDER, PLANET_GLYPHS, PLANET_NAMES_RU } from '../lib/astroColors';
+import { TZ_COORDS, FALLBACK_COORDS } from '../lib/timezoneCoords';
+import { PALETTE_SPEC, TOKEN_NAMES } from '../lib/themeEngine';
+---
+<script is:inline define:vars={{ PLANET_HUES, WEEKDAY_RULERS, CHALDEAN_ORDER, PLANET_GLYPHS, PLANET_NAMES_RU, TZ_COORDS, FALLBACK_COORDS, PALETTE_SPEC, TOKEN_NAMES }}>
+  (function () {
+    function computeSolarTimes(date, lat, lon) {
+      var dayOfYear = Math.floor(
+        (Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
+          - Date.UTC(date.getFullYear(), 0, 0)) / 86400000
+      );
+      var latRad = lat * Math.PI / 180;
+      var B = 2 * Math.PI * (dayOfYear - 1) / 365;
+      var eqOfTime = 229.18 * (
+        0.000075
+        + 0.001868 * Math.cos(B)
+        - 0.032077 * Math.sin(B)
+        - 0.014615 * Math.cos(2 * B)
+        - 0.040849 * Math.sin(2 * B)
+      );
+      var decl = 0.006918 - 0.399912 * Math.cos(B) + 0.070257 * Math.sin(B)
+        - 0.006758 * Math.cos(2 * B) + 0.000907 * Math.sin(2 * B)
+        - 0.002697 * Math.cos(3 * B) + 0.00148 * Math.sin(3 * B);
+      var tzOffsetMin = -date.getTimezoneOffset();
+      function compMin(angleDeg) {
+        var cosHA = (Math.cos(angleDeg * Math.PI / 180) - Math.sin(latRad) * Math.sin(decl))
+          / (Math.cos(latRad) * Math.cos(decl));
+        var c = Math.max(-1, Math.min(1, cosHA));
+        return Math.acos(c) * 180 / Math.PI;
+      }
+      var haSunrise = compMin(90.833);
+      var solarNoonMin = 720 - 4 * lon - eqOfTime + tzOffsetMin;
+      return {
+        sunriseMin: solarNoonMin - haSunrise * 4,
+        sunsetMin: solarNoonMin + haSunrise * 4,
+      };
+    }
+
+    function midnightTs(date) {
+      var d = new Date(date);
+      d.setHours(0, 0, 0, 0);
+      return d.getTime();
+    }
+
+    function getPlanetaryHour(now, lat, lon) {
+      var dayBase = new Date(now);
+      var solar = computeSolarTimes(dayBase, lat, lon);
+      var sunriseTsToday = midnightTs(dayBase) + solar.sunriseMin * 60000;
+      if (now.getTime() < sunriseTsToday) {
+        dayBase = new Date(now);
+        dayBase.setDate(dayBase.getDate() - 1);
+        solar = computeSolarTimes(dayBase, lat, lon);
+      }
+      var tomorrow = new Date(dayBase);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      var nextSolar = computeSolarTimes(tomorrow, lat, lon);
+
+      var sunriseTs = midnightTs(dayBase) + solar.sunriseMin * 60000;
+      var sunsetTs = midnightTs(dayBase) + solar.sunsetMin * 60000;
+      var nextSunriseTs = midnightTs(tomorrow) + nextSolar.sunriseMin * 60000;
+
+      var phaseStartTs, phaseEndTs, totalIdx;
+      if (now.getTime() < sunsetTs) {
+        var dayHourLen = (sunsetTs - sunriseTs) / 12;
+        var dHourIdx = Math.floor((now.getTime() - sunriseTs) / dayHourLen);
+        phaseStartTs = sunriseTs + dHourIdx * dayHourLen;
+        phaseEndTs = phaseStartTs + dayHourLen;
+        totalIdx = dHourIdx;
+      } else {
+        var nightHourLen = (nextSunriseTs - sunsetTs) / 12;
+        var nHourIdx = Math.floor((now.getTime() - sunsetTs) / nightHourLen);
+        phaseStartTs = sunsetTs + nHourIdx * nightHourLen;
+        phaseEndTs = phaseStartTs + nightHourLen;
+        totalIdx = 12 + nHourIdx;
+      }
+
+      var dayRuler = WEEKDAY_RULERS[dayBase.getDay()];
+      var startIdx = CHALDEAN_ORDER.indexOf(dayRuler);
+      var ruler = CHALDEAN_ORDER[((startIdx + totalIdx) % 7 + 7) % 7];
+      return {
+        ruler: ruler,
+        dayRuler: dayRuler,
+        phaseStartTs: phaseStartTs,
+        phaseEndTs: phaseEndTs,
+        totalIdx: totalIdx,
+        solar: solar,
+        nextSolar: nextSolar,
+      };
+    }
+
+    function getColorMode() {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+
+    function routeHue(role, dayHue, hourHue, spec) {
+      if (spec.hueOverride !== undefined && spec.hueOverride !== null) return spec.hueOverride;
+      if (role === 'accent') return hourHue;
+      return dayHue;
+    }
+
+    function computePalette(dayHue, hourHue, mode) {
+      var spec = PALETTE_SPEC[mode];
+      var out = {};
+      for (var role in TOKEN_NAMES) {
+        if (Object.prototype.hasOwnProperty.call(TOKEN_NAMES, role)) {
+          var s = spec[role];
+          var h = routeHue(role, dayHue, hourHue, s);
+          out[TOKEN_NAMES[role]] = 'oklch(' + s.L + '% ' + s.C + ' ' + h + ')';
+        }
+      }
+      return out;
+    }
+
+    function applyPalette(palette) {
+      var root = document.documentElement;
+      for (var k in palette) {
+        if (Object.prototype.hasOwnProperty.call(palette, k)) {
+          root.style.setProperty(k, palette[k]);
+        }
+      }
+    }
+
+    function computeState(now, lat, lon) {
+      var hour = getPlanetaryHour(now, lat, lon);
+      var mode = getColorMode();
+      var dayHue = PLANET_HUES[hour.dayRuler];
+      var hourHue = PLANET_HUES[hour.ruler];
+      var palette = computePalette(dayHue, hourHue, mode);
+      return { mode: mode, hour: hour, palette: palette, lat: lat, lon: lon };
+    }
+
+    function applyState(state) {
+      applyPalette(state.palette);
+      var root = document.documentElement;
+      root.dataset.astroMode = state.mode;
+      root.dataset.astroHourRuler = state.hour.ruler;
+      root.dataset.astroDayRuler = state.hour.dayRuler;
+    }
+
+    var tz;
+    try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (e) { tz = null; }
+    var coords = (tz && TZ_COORDS[tz]) ? TZ_COORDS[tz] : FALLBACK_COORDS;
+
+    var now = new Date();
+    var state = computeState(now, coords[0], coords[1]);
+    applyState(state);
+
+    window.__astroTheme = {
+      PLANET_HUES: PLANET_HUES,
+      WEEKDAY_RULERS: WEEKDAY_RULERS,
+      CHALDEAN_ORDER: CHALDEAN_ORDER,
+      PLANET_GLYPHS: PLANET_GLYPHS,
+      PLANET_NAMES_RU: PLANET_NAMES_RU,
+      TZ_COORDS: TZ_COORDS,
+      FALLBACK_COORDS: FALLBACK_COORDS,
+      PALETTE_SPEC: PALETTE_SPEC,
+      TOKEN_NAMES: TOKEN_NAMES,
+      computeState: computeState,
+      applyState: applyState,
+      coords: coords,
+      tz: tz || null,
+      state: state,
+    };
+  })();
+</script>

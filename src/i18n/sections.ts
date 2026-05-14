@@ -14,6 +14,7 @@ export const showcaseSections: Record<Lang, Section[]> = {
     { id: 'problem', label: 'Problem' },
     { id: 'approach', label: 'Approach' },
     { id: 'architecture', label: 'Architecture' },
+    { id: 'highlights', label: 'Highlights' },
     { id: 'metrics', label: 'Metrics' },
     { id: 'stack', label: 'Stack' },
     { id: 'links', label: 'Links' },
