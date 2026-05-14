@@ -1,0 +1,32 @@
+---
+import { languages, type Lang } from '../i18n/ui';
+import { getLangFromUrl, localizePath } from '../i18n/utils';
+
+export interface Props {
+  // 'fixed' floats in the top-right corner (pages without a header);
+  // 'inline' sits in normal flow (e.g. inside a showcase header).
+  variant?: 'fixed' | 'inline';
+}
+
+const { variant = 'fixed' } = Astro.props;
+const current = getLangFromUrl(Astro.url);
+const path = Astro.url.pathname;
+
+const wrapClass =
+  variant === 'fixed'
+    ? 'fixed top-3 right-3 z-50 flex gap-0.5 font-mono text-xs bg-bg/80 backdrop-blur border border-border rounded px-1 py-0.5'
+    : 'flex gap-0.5 font-mono text-xs';
+---
+
+<div class={wrapClass}>
+  {Object.entries(languages).map(([code, label]) =>
+    code === current ? (
+      <span class="px-1.5 py-0.5 text-accent font-semibold">{label}</span>
+    ) : (
+      <a
+        href={localizePath(path, code as Lang)}
+        class="px-1.5 py-0.5 text-text-muted hover:text-accent transition-colors"
+      >{label}</a>
+    ),
+  )}
+</div>

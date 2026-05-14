@@ -1,0 +1,12 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import HomePage from '../../components/HomePage.astro';
+import { home } from '../../i18n/home';
+
+const lang = 'ru';
+const meta = home[lang].meta;
+---
+
+<BaseLayout title={meta.title} description={meta.description} lang={lang}>
+  <HomePage lang={lang} />
+</BaseLayout>

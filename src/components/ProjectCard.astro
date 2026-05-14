@@ -1,16 +1,19 @@
 ---
 import StatusTag from './StatusTag.astro';
 import StackList from './StackList.astro';
+import { localizePath } from '../i18n/utils';
+import type { Lang } from '../i18n/ui';
 
 export interface Props {
   project: any; // CollectionEntry<'projects'>
+  lang: Lang;
 }
-const { project } = Astro.props;
+const { project, lang } = Astro.props;
 const { data } = project;
 ---
 
 <a
-  href={`/projects/${data.slug}`}
+  href={localizePath(`/projects/${data.slug}`, lang)}
   class="block border border-border bg-surface rounded-lg p-5 hover:border-accent transition-colors"
 >
   <div class="flex justify-between items-start gap-4">

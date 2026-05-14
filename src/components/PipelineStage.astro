@@ -1,4 +1,7 @@
 ---
+import { useTranslations } from '../i18n/utils';
+import type { Lang } from '../i18n/ui';
+
 export interface Props {
   num: number;
   name: string;
@@ -9,9 +12,11 @@ export interface Props {
   outputValue?: string;
   outputIframe?: string;
   observation?: string;
+  lang?: Lang;
 }
 
-const { num, name, what, inputLabel, inputValue, outputLabel, outputValue, outputIframe, observation } = Astro.props;
+const { num, name, what, inputLabel, inputValue, outputLabel, outputValue, outputIframe, observation, lang = 'en' } = Astro.props;
+const t = useTranslations(lang);
 ---
 
 <article class="border border-border bg-surface rounded-lg p-6 my-4">
@@ -23,11 +28,11 @@ const { num, name, what, inputLabel, inputValue, outputLabel, outputValue, outpu
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     <div>
-      <p class="font-mono text-xs text-text-muted uppercase tracking-wider mb-2">Input · {inputLabel}</p>
+      <p class="font-mono text-xs text-text-muted uppercase tracking-wider mb-2">{t('pipeline.input')} · {inputLabel}</p>
       <pre class="font-mono text-xs bg-bg border border-border rounded p-3 text-text whitespace-pre-wrap">{inputValue}</pre>
     </div>
     <div>
-      <p class="font-mono text-xs text-text-muted uppercase tracking-wider mb-2">Output · {outputLabel}</p>
+      <p class="font-mono text-xs text-text-muted uppercase tracking-wider mb-2">{t('pipeline.output')} · {outputLabel}</p>
       {outputIframe && (
         <div class="bg-bg border border-border rounded overflow-hidden" style="height: 220px">
           <iframe src={outputIframe} class="w-full h-full border-0" loading="lazy" title={`${name} output`}></iframe>
@@ -41,7 +46,7 @@ const { num, name, what, inputLabel, inputValue, outputLabel, outputValue, outpu
 
   {observation && (
     <p class="mt-4 text-sm text-text-muted italic border-l-2 border-accent pl-3">
-      <span class="font-mono uppercase text-xs not-italic mr-2">Observed:</span>
+      <span class="font-mono uppercase text-xs not-italic mr-2">{t('pipeline.observed')}</span>
       {observation}
     </p>
   )}

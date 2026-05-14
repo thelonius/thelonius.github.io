@@ -1,0 +1,111 @@
+---
+import HomeHero from './HomeHero.astro';
+import ProjectCard from './ProjectCard.astro';
+import ProjectMention from './ProjectMention.astro';
+import { getProjects } from '../i18n/utils';
+import { home } from '../i18n/home';
+import type { Lang } from '../i18n/ui';
+
+export interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const c = home[lang];
+
+const all = await getProjects(lang);
+const featured = all.filter((p) => p.data.featured).sort((a, b) => a.data.order - b.data.order);
+const deep = featured.filter((p) => p.data.deep);
+const mentions = featured.filter((p) => !p.data.deep);
+---
+
+<HomeHero lang={lang} />
+
+<section id="projects" class="max-w-content mx-auto px-6 py-12">
+  <p class="font-mono text-xs text-accent uppercase tracking-widest">{c.projects.eyebrow}</p>
+  <h2 class="text-2xl font-semibold mt-1">{c.projects.heading}</h2>
+
+  <div class="mt-8 flex flex-col gap-3">
+    {deep.map((project) => <ProjectCard project={project} lang={lang} />)}
+  </div>
+
+  {mentions.length > 0 && (
+    <div class="mt-10">
+      <p class="font-mono text-xs text-text-muted uppercase tracking-widest mb-3">{c.projects.also}</p>
+      <div class="flex flex-col gap-2">
+        {mentions.map((project) => <ProjectMention project={project} />)}
+      </div>
+    </div>
+  )}
+</section>
+
+<section id="about" class="max-w-content mx-auto px-6 py-12">
+  <p class="font-mono text-xs text-accent uppercase tracking-widest">{c.about.eyebrow}</p>
+  <h2 class="text-2xl font-semibold mt-1">{c.about.heading}</h2>
+
+  <div class="mt-6 prose prose-invert max-w-none
+              prose-p:text-text prose-strong:text-text
+              prose-a:text-accent prose-a:no-underline hover:prose-a:underline">
+    <p>{c.about.p1}</p>
+    <p>{c.about.focusLabel}</p>
+    <ul>
+      {c.about.focus.map((f) => (
+        <li><strong>{f.strong}</strong>{f.rest}</li>
+      ))}
+    </ul>
+    <p>{c.about.p2}</p>
+  </div>
+</section>
+
+<section id="experience" class="max-w-content mx-auto px-6 py-12">
+  <p class="font-mono text-xs text-accent uppercase tracking-widest">{c.experience.eyebrow}</p>
+  <h2 class="text-2xl font-semibold mt-1">{c.experience.heading}</h2>
+
+  <ul class="mt-6 font-mono text-sm flex flex-col gap-2">
+    {c.experience.rows.map((row) => (
+      <li class="flex gap-4">
+        <span class="text-text-muted w-32 shrink-0">{row.period}</span>
+        <span class="text-text">{row.role}</span>
+      </li>
+    ))}
+  </ul>
+</section>
+
+<section id="skills" class="max-w-content mx-auto px-6 py-12">
+  <p class="font-mono text-xs text-accent uppercase tracking-widest">{c.skills.eyebrow}</p>
+  <h2 class="text-2xl font-semibold mt-1">{c.skills.heading}</h2>
+
+  <dl class="mt-6 grid gap-y-4 text-sm">
+    {c.skills.groups.map((g) => (
+      <div class="grid grid-cols-[140px_1fr] gap-4">
+        <dt class="text-text-muted font-mono">{g.label}</dt>
+        <dd class="font-mono text-text">{g.value}</dd>
+      </div>
+    ))}
+  </dl>
+</section>
+
+<section id="contact" class="max-w-content mx-auto px-6 py-12">
+  <p class="font-mono text-xs text-accent uppercase tracking-widest">{c.contact.eyebrow}</p>
+  <h2 class="text-2xl font-semibold mt-1">{c.contact.heading}</h2>
+
+  <ul class="mt-6 font-mono text-sm flex flex-col gap-2">
+    {c.contact.rows.map((row) => (
+      <li class="flex gap-4">
+        <span class="text-text-muted w-24 shrink-0">{row.label}</span>
+        <a
+          class="text-accent hover:underline"
+          href={row.href}
+          {...(row.download ? { download: true } : {})}
+        >{row.text}</a>
+      </li>
+    ))}
+  </ul>
+</section>
+
+<footer class="max-w-content mx-auto px-6 py-12 border-t border-border mt-12">
+  <p class="text-text-muted text-xs font-mono">
+    {c.footer.pre}
+    <a class="text-accent hover:underline" href="https://github.com/thelonius/thelonius.github.io">{c.footer.linkLabel}</a>
+  </p>
+</footer>

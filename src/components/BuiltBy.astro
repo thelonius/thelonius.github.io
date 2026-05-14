@@ -1,28 +1,34 @@
 ---
 // Solo + AI-augmented narrative footer for showcase pages.
-// Defaults are tuned for Go-Active but everything is overridable.
+// Fixed words are localized; scope/status text is passed in per page.
+import { useTranslations } from '../i18n/utils';
+import type { Lang } from '../i18n/ui';
 
 export interface Props {
   author?: string;
-  scope?: string;
+  scope: string;
   aiAugmented?: string;
-  status?: string;
+  status: string;
+  lang?: Lang;
 }
 
 const {
   author = 'Ed Dubnitsky',
-  scope = 'end-to-end: pipeline architecture, CV scoring, Telegram Mini App, deployment',
+  scope,
   aiAugmented = 'Claude Code',
-  status = 'Solo project · in production with real users',
+  status,
+  lang = 'en',
 } = Astro.props;
+
+const t = useTranslations(lang);
 ---
 
 <aside class="mt-12 border-l-2 border-accent bg-surface rounded-r-lg p-6">
-  <p class="font-mono text-xs text-accent uppercase tracking-widest mb-2">Built by</p>
+  <p class="font-mono text-xs text-accent uppercase tracking-widest mb-2">{t('builtby.label')}</p>
   <p class="text-text leading-relaxed">
-    Designed and built <strong>{scope}</strong> by <strong>{author}</strong>.
+    {t('builtby.designedPrefix')}<strong>{scope}</strong>{t('builtby.designedBy')}<strong>{author}</strong>.
   </p>
   <p class="text-text-muted text-sm leading-relaxed mt-2">
-    AI-augmented coding via <strong class="text-text">{aiAugmented}</strong> — pair-programmed at the keyboard. {status}.
+    {t('builtby.aiPrefix')}<strong class="text-text">{aiAugmented}</strong>{t('builtby.aiSuffix')}{status}.
   </p>
 </aside>

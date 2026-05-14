@@ -1,20 +1,33 @@
 ---
 import '../styles/global.css';
+import LangSwitcher from '../components/LangSwitcher.astro';
+import type { Lang } from '../i18n/ui';
 
 export interface Props {
   title: string;
   description: string;
   ogImagePath?: string;
   url?: string;
+  lang?: Lang;
+  // Showcase pages render their own inline switcher inside the sticky header.
+  showLangSwitcher?: boolean;
 }
 
-const { title, description, ogImagePath = 'home', url } = Astro.props;
+const {
+  title,
+  description,
+  ogImagePath = 'home',
+  url,
+  lang = 'en',
+  showLangSwitcher = true,
+} = Astro.props;
 const canonicalURL = url || Astro.url.toString();
 const ogImageURL = new URL(`/og/${ogImagePath}.png`, Astro.site).toString();
+const ogLocale = lang === 'ru' ? 'ru_RU' : 'en_US';
 ---
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang={lang}>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -29,6 +42,7 @@ const ogImageURL = new URL(`/og/${ogImagePath}.png`, Astro.site).toString();
   <meta property="og:description" content={description} />
   <meta property="og:image" content={ogImageURL} />
   <meta property="og:url" content={canonicalURL} />
+  <meta property="og:locale" content={ogLocale} />
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
@@ -37,6 +51,7 @@ const ogImageURL = new URL(`/og/${ogImagePath}.png`, Astro.site).toString();
   <meta name="twitter:image" content={ogImageURL} />
 </head>
 <body class="bg-bg text-text font-sans">
+  {showLangSwitcher && <LangSwitcher />}
   <slot />
   <!--
     GoatCounter analytics. Sign up at https://goatcounter.com (free tier),

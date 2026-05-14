@@ -2,7 +2,13 @@ import { defineCollection, z } from 'astro:content';
 import { glob } from 'astro/loaders';
 
 const projects = defineCollection({
-  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/projects' }),
+  // Keep the subdirectory in the id (en files at root, ru/ for Russian)
+  // so en/ru files with the same slug don't collide.
+  loader: glob({
+    pattern: '**/*.{md,mdx}',
+    base: './src/content/projects',
+    generateId: ({ entry }) => entry.replace(/\.[^.]+$/, ''),
+  }),
   schema: z.object({
     slug: z.string(),
     title: z.string(),
@@ -37,7 +43,7 @@ const projects = defineCollection({
     deep: z.boolean().default(true),
     order: z.number(),
 
-    description: z.string().max(160),
+    description: z.string().max(240),
   }),
 });
 

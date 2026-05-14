@@ -10,8 +10,10 @@ const pages: Record<string, { title: string; description: string }> = {
   },
 };
 
+// Only the English entries (collection root) get OG images; Russian
+// translations live under ru/ and reuse the same image per slug.
 projects.forEach(p => {
-  if (p.data.deep) {
+  if (p.data.deep && !p.id.includes('/')) {
     pages[p.data.slug] = {
       title: p.data.title,
       description: p.data.description,

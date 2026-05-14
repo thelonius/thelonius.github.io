@@ -1,0 +1,262 @@
+---
+// Rich proptech showcase body. Rendered by /projects/proptech and /ru/projects/proptech.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Sidebar from '../Sidebar.astro';
+import StatusTag from '../StatusTag.astro';
+import StackList from '../StackList.astro';
+import LinksList from '../LinksList.astro';
+import MetricsTable from '../MetricsTable.astro';
+import InteractiveHero from '../proptech/InteractiveHero.astro';
+import ProviderChart from '../proptech/ProviderChart.astro';
+import CodeExcerpt from '../proptech/CodeExcerpt.astro';
+import AnnotatedResponse from '../proptech/AnnotatedResponse.astro';
+import EvalDiff from '../proptech/EvalDiff.astro';
+import BeforeAfterSplit from '../BeforeAfterSplit.astro';
+import PipelineStage from '../PipelineStage.astro';
+import LangSwitcher from '../LangSwitcher.astro';
+
+import heroData from '../../content/proptech-data/hero-queries.json';
+import providerData from '../../content/proptech-data/provider-showdown.json';
+import evalDiffText from '../../content/proptech-data/eval-diff.md?raw';
+
+import { getProject, localizePath, useTranslations } from '../../i18n/utils';
+import { proptech } from '../../i18n/proptech';
+import type { Lang } from '../../i18n/ui';
+
+export interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const c = proptech[lang];
+const t = useTranslations(lang);
+
+const project = await getProject(lang, 'proptech');
+if (!project) throw new Error('proptech project not found in content collection');
+---
+
+<BaseLayout
+  title={`${project.data.title} — Ed Dubnitsky`}
+  description={project.data.description}
+  ogImagePath={project.data.slug}
+  lang={lang}
+  showLangSwitcher={false}
+>
+  <header class="sticky top-0 z-10 bg-bg/90 backdrop-blur border-b border-border">
+    <div class="max-w-5xl mx-auto px-6 py-3 flex items-baseline justify-between gap-4">
+      <a href={localizePath('/', lang)} class="text-text-muted hover:text-accent text-sm min-w-0 truncate">{t('nav.back')} · {project.data.title}</a>
+      <div class="flex items-baseline gap-3 shrink-0">
+        <StatusTag status={project.data.status} year={project.data.year} />
+        <LangSwitcher variant="inline" />
+      </div>
+    </div>
+  </header>
+
+  <div class="max-w-5xl mx-auto px-6 pt-6">
+    <h1 class="text-3xl font-semibold">{project.data.title}</h1>
+    <p class="text-text-muted mt-2">{project.data.tagline}</p>
+    <p class="text-text-muted text-sm mt-1 font-mono">{project.data.period}</p>
+    {project.data.keyMetric && (
+      <p class="text-accent font-mono text-sm mt-2">{project.data.keyMetric}</p>
+    )}
+  </div>
+
+  <div class="max-w-5xl mx-auto px-6 pt-12 pb-16 flex gap-8">
+    <Sidebar sections={c.sections} />
+    <article class="flex-1 min-w-0 prose prose-invert max-w-none
+                    prose-headings:scroll-mt-20
+                    prose-h2:text-accent prose-h2:font-semibold prose-h2:text-xl
+                    prose-h2:mt-12 prose-h2:mb-4
+                    prose-p:text-text prose-strong:text-text">
+
+      <section id="hero" class="not-prose mb-12">
+        <InteractiveHero queries={heroData.queries} runId={heroData.run_id} isStub={heroData.is_stub} />
+      </section>
+
+      <section id="problem">
+        <h2>{c.problem.h2}</h2>
+        <p>{c.problem.p1}</p>
+        <p>{c.problem.p2}</p>
+
+        <BeforeAfterSplit
+          leftSrc="/proptech-mocks/filter-ui.html"
+          leftLabel={c.problem.beforeLabel}
+          rightSrc="/proptech-mocks/lifestyle.html"
+          rightLabel={c.problem.afterLabel}
+          height="320px"
+        />
+      </section>
+
+      <section id="architecture">
+        <h2>{c.architecture.h2}</h2>
+        <p set:html={c.architecture.p} />
+        <pre class="mermaid">
+graph LR
+  query[Natural query] --> intent[Intent parser LLM]
+  intent --> qdrant[(Qdrant)]
+  qdrant --> rerank[Re-ranker LLM + explanations]
+  rerank --> resp[Response]
+  query -.parallel.-> cost[Cost middleware]
+  cost --> real[X-Cost-USD]
+  cost --> shadow1[X-Cost-Shadow-OpenAI]
+  cost --> shadow2[X-Cost-Shadow-NIM]
+  eval[Eval harness CI gate] -.checks.-> resp
+        </pre>
+      </section>
+
+      <section id="pipeline" class="not-prose">
+        <h2 class="text-accent font-semibold text-xl mt-12 mb-4">{c.pipeline.h2}</h2>
+        <p class="text-text mb-4" set:html={c.pipeline.intro} />
+
+        <PipelineStage
+          num={1}
+          lang={lang}
+          name={c.pipeline.stages[0].name}
+          what={c.pipeline.stages[0].what}
+          inputLabel={c.pipeline.stages[0].inputLabel}
+          inputValue={heroData.queries[0].query}
+          outputLabel={c.pipeline.stages[0].outputLabel}
+          outputValue={`{ "household": "family-with-children",
+  "amenities": ["pool", "garden"],
+  "lifestyle_traits": ["family-friendly"],
+  "constraints_strict": [],
+  "constraints_soft":   ["quiet"] }`}
+          observation={c.pipeline.stages[0].observation}
+        />
+
+        <PipelineStage
+          num={2}
+          lang={lang}
+          name={c.pipeline.stages[1].name}
+          what={c.pipeline.stages[1].what}
+          inputLabel={c.pipeline.stages[1].inputLabel}
+          inputValue={`embed("${heroData.queries[0].query}")`}
+          outputLabel={c.pipeline.stages[1].outputLabel}
+          outputValue={heroData.queries[0].results.slice(0, 3).map((r, i) => `${i + 1}. ${r.id}  score=${r.score.toFixed(2)}`).join('\n')}
+          observation={c.pipeline.stages[1].observation}
+        />
+
+        <PipelineStage
+          num={3}
+          lang={lang}
+          name={c.pipeline.stages[2].name}
+          what={c.pipeline.stages[2].what}
+          inputLabel={c.pipeline.stages[2].inputLabel}
+          inputValue={c.pipeline.stage3Prompt}
+          outputLabel={c.pipeline.stages[2].outputLabel}
+          outputValue={`${heroData.queries[0].results[0].title}\n→ ${heroData.queries[0].results[0].explanation}`}
+          observation={c.pipeline.stages[2].observation}
+        />
+      </section>
+
+      <section id="multi-provider">
+        <h2>{c.multiProvider.h2}</h2>
+        <p>{c.multiProvider.p}</p>
+        <CodeExcerpt
+          language="python"
+          filename="app/services/llm.py"
+          code={`class LLMClient:
+    """Thin wrapper around AsyncOpenAI configured for the active provider."""
+
+    def __init__(self, settings: Settings | None = None,
+                 provider: LLMProvider | None = None):
+        self.settings = settings or get_settings()
+        self.provider: LLMProvider = provider or self.settings.llm_provider
+        self._client = self._build_client()
+
+    def _build_client(self) -> AsyncOpenAI:  [[1]]
+        s = self.settings
+        if self.provider == "ollama":
+            return AsyncOpenAI(base_url=f"{s.ollama_base_url}/v1",
+                               api_key="ollama", timeout=s.llm_request_timeout_s)
+        if self.provider == "openai":
+            return AsyncOpenAI(api_key=s.openai_api_key or "missing",
+                               timeout=s.llm_request_timeout_s)
+        if self.provider == "nim":
+            return AsyncOpenAI(base_url=s.nim_base_url,
+                               api_key=s.nim_api_key or "missing",
+                               timeout=s.llm_request_timeout_s)
+        raise ValueError(f"unknown provider {self.provider}")
+
+# Provider switch is one env var:  [[2]]
+#   LLM_PROVIDER=nim    make api
+#   LLM_PROVIDER=openai make api
+`}
+          annotations={[
+            { marker: 1, note: c.multiProvider.annotations[0] },
+            { marker: 2, note: c.multiProvider.annotations[1] },
+          ]}
+        />
+      </section>
+
+      <section id="cost">
+        <h2>{c.cost.h2}</h2>
+        <p set:html={c.cost.p} />
+        <AnnotatedResponse
+          status="HTTP/1.1 200 OK"
+          headers={[
+            { name: "X-Provider",                value: "nim",      annotation: c.cost.annotations[0] },
+            { name: "X-Duration-Ms",             value: "1640",     annotation: c.cost.annotations[1] },
+            { name: "X-Cost-USD",                value: "0.000040", annotation: c.cost.annotations[2] },
+            { name: "X-Cost-Shadow-OpenAI-USD",  value: "0.000127", annotation: c.cost.annotations[3] },
+            { name: "X-Cost-Shadow-NIM-USD",     value: "0.000040", annotation: c.cost.annotations[4] },
+          ]}
+          caption={c.cost.caption}
+        />
+      </section>
+
+      <section id="showdown">
+        <h2>{c.showdown.h2}</h2>
+        <p>{c.showdown.p}</p>
+        <ProviderChart providers={providerData.providers} runId={providerData.run_id} />
+      </section>
+
+      <section id="eval">
+        <h2>{c.evalSec.h2}</h2>
+        <p>{c.evalSec.p}</p>
+        <EvalDiff text={evalDiffText} caption={c.evalSec.caption} />
+      </section>
+
+      <section id="tradeoffs" class="not-prose">
+        <h2 class="text-accent font-semibold text-xl mt-12 mb-4">{c.tradeoffs.h2}</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {c.tradeoffs.cards.map((card) => (
+            <article class="border border-border rounded-lg p-5 bg-surface">
+              <p class="text-xs text-text-muted uppercase tracking-wider">{card.eyebrow}</p>
+              <h3 class="text-text font-semibold mt-1">{card.h3}</h3>
+              <p class="text-text-muted text-sm mt-3" set:html={card.p} />
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section id="roadmap">
+        <h2>{c.roadmap.h2}</h2>
+        <p>{c.roadmap.intro}</p>
+        <ul>
+          {c.roadmap.items.map((item) => <li set:html={item} />)}
+        </ul>
+      </section>
+
+      <section id="stack" class="not-prose mt-12">
+        <h2 class="text-accent font-semibold text-xl mb-4">{c.stack.stackH2}</h2>
+        <StackList stack={project.data.stack} />
+
+        {project.data.metrics && project.data.metrics.length > 0 && (
+          <>
+            <h2 class="text-accent font-semibold text-xl mt-12 mb-4">{c.stack.metricsH2}</h2>
+            <MetricsTable metrics={project.data.metrics} />
+          </>
+        )}
+
+        <h2 class="text-accent font-semibold text-xl mt-12 mb-4">{c.stack.linksH2}</h2>
+        <LinksList links={project.data.links} />
+
+        <p class="text-text-muted text-xs font-mono mt-8">
+          {c.stack.runIdPrefix}<code class="text-accent">{heroData.run_id}</code>{heroData.is_stub && <span class="text-warn">{c.stack.stubNote}</span>}
+        </p>
+      </section>
+
+    </article>
+  </div>
+</BaseLayout>

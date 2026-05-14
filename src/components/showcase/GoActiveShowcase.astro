@@ -1,0 +1,457 @@
+---
+// Rich go-active showcase body. Rendered by /projects/go-active and /ru/projects/go-active.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import StatusTag from '../StatusTag.astro';
+import StackList from '../StackList.astro';
+import BeforeAfterSplit from '../BeforeAfterSplit.astro';
+import PipelineStage from '../PipelineStage.astro';
+import MetricsDashboard from '../MetricsDashboard.astro';
+import BuiltBy from '../BuiltBy.astro';
+import LangSwitcher from '../LangSwitcher.astro';
+import rendersJson from '../../data/go-active-renders.json';
+
+import { getProject, localizePath, useTranslations } from '../../i18n/utils';
+import { goActive } from '../../i18n/go-active';
+import type { Lang } from '../../i18n/ui';
+
+export interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const c = goActive[lang];
+const t = useTranslations(lang);
+
+const project = await getProject(lang, 'go-active');
+if (!project) throw new Error('go-active project not found in content collection');
+const { data } = project;
+
+interface RenderTile {
+  slug: string;
+  label: string;
+  duration: string;
+  src: string;
+  poster: string;
+  ready: boolean;
+}
+const renders = rendersJson as RenderTile[];
+const readyRenders = renders.filter((r) => r.ready);
+const queuedRenders = renders.filter((r) => !r.ready);
+
+// Verbatim data dumps for the metric-group cards — identical across languages.
+const cardPres = [
+  `surface_normal_alignment  0.65
+favorable_angle_ratio     0.70
+terrain_coverage_ratio    1.00
+near_range_occlusion      0.15`,
+  `layer_count                3
+depth_distribution_entropy 0.60
+foreground_background_sep  0.70`,
+  `informative_fill_ratio    0.85
+traveler_visibility       0.90
+traveler_framing_score    0.75
+sky_terrain_balance       0.30`,
+  `information_flow          0.55
+revelation_timing         0.60
+visual_variety            0.06
+coherence                 0.80`,
+  `smoothness_score          0.59
+jitter_level_px          10.92
+stability_index           0.85
+dropped / stutter         1 / 1`,
+  `duration_seconds          25.04
+average_speed_px_per_sec 384.39
+speed_consistency         0.80
+camera_height_score       0.94`,
+  `sharpness_score        1.00      texture_detail_score   0.47
+blockiness_score       1.00      loading_artifacts      0.00`,
+];
+const cvImages = [
+  '/assets/go-active/cv/cv_original.png',
+  '/assets/go-active/cv/cv_depth.png',
+  '/assets/go-active/cv/cv_marker.png',
+  '/assets/go-active/cv/cv_edges.png',
+];
+---
+
+<BaseLayout
+  title={`${data.title} — Ed Dubnitsky`}
+  description={data.description}
+  ogImagePath={data.slug}
+  lang={lang}
+  showLangSwitcher={false}
+>
+  <header class="sticky top-0 z-10 bg-bg/90 backdrop-blur border-b border-border">
+    <div class="max-w-5xl mx-auto px-6 py-3 flex items-baseline justify-between gap-4">
+      <a href={localizePath('/', lang)} class="text-text-muted hover:text-accent text-sm min-w-0 truncate">{t('nav.back')} · {data.title}</a>
+      <div class="flex items-baseline gap-3 shrink-0">
+        <StatusTag status={data.status} year={data.year} />
+        <LangSwitcher variant="inline" />
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-6 pt-8 pb-16">
+    <figure class="my-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="relative bg-surface border border-border rounded-lg overflow-hidden" style="height: 460px">
+          <iframe src="/assets/go-active/trajectory_2d.html" title="Raw GPX top-down" loading="lazy" class="w-full h-full border-0"></iframe>
+          <div class="absolute top-3 left-3 px-2 py-1 bg-bg/85 border border-border rounded font-mono text-xs text-text-muted uppercase tracking-wider">
+            {c.heroLabels.rawGpx}
+          </div>
+        </div>
+        <div class="relative bg-surface border border-border rounded-lg overflow-hidden flex items-center justify-center" style="height: 460px">
+          <video
+            src="/assets/go-active/production_render.mp4"
+            poster="/assets/go-active/production_render_poster.png"
+            autoplay muted loop playsinline
+            class="h-full w-auto"
+            aria-label={c.heroLabels.realRender}
+          ></video>
+          <div class="absolute top-3 left-3 px-2 py-1 bg-bg/85 border border-border rounded font-mono text-xs text-accent uppercase tracking-wider">
+            {c.heroLabels.realRender}
+          </div>
+          <div class="absolute bottom-3 left-3 px-2 py-1 bg-bg/80 border border-border rounded font-mono text-xs text-text-muted">
+            {c.heroLabels.clipNote}
+          </div>
+        </div>
+      </div>
+      <figcaption class="text-text-muted text-sm mt-3 italic">{c.heroCaption}</figcaption>
+    </figure>
+
+    <section class="mt-8">
+      <h1 class="text-4xl font-semibold tracking-tight">{data.title}</h1>
+      <p class="text-text-muted mt-2 text-lg">{data.tagline}</p>
+      <p class="text-text-muted text-sm mt-1 font-mono">{data.period}</p>
+      <p class="text-accent font-mono text-sm mt-3" set:html={c.liveLine} />
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-xl font-semibold text-accent mb-3">{c.problem.h2}</h2>
+      <p class="text-text leading-relaxed" set:html={c.problem.p1} />
+      <p class="text-text leading-relaxed mt-3">{c.problem.p2}</p>
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-xl font-semibold text-accent mb-2">{c.process.h2}</h2>
+      <p class="text-text-muted text-sm mb-4" set:html={c.process.intro} />
+
+      <PipelineStage
+        num={1}
+        lang={lang}
+        name={c.process.stages[0].name}
+        what={c.process.stages[0].what}
+        inputLabel={c.process.stages[0].inputLabel}
+        inputValue={'name: 227-arkhyz-teberda-2024\nsize: ~280 KB\nformat: GPX 1.1'}
+        outputLabel={c.process.stages[0].outputLabel}
+        outputValue={'first: { lat: 43.5604, lon: 41.2851,\n         ele: 1457.1, time: 2025-11-10T09:34:02Z }\nlast:  { lat: 43.5375, lon: 41.3377,\n         ele: 2354.3, time: 2025-11-12T07:44:11Z }'}
+        observation={c.process.stages[0].observation}
+      />
+
+      <PipelineStage
+        num={2}
+        lang={lang}
+        name={c.process.stages[1].name}
+        what={c.process.stages[1].what}
+        inputLabel={c.process.stages[1].inputLabel}
+        inputValue={'lat: 43.51 → 43.62\nlon: 41.28 → 41.37\nspan: ~12 km × 7 km'}
+        outputLabel={c.process.stages[1].outputLabel}
+        outputIframe="/assets/go-active/elevation_profile.html"
+        observation={c.process.stages[1].observation}
+      />
+
+      <PipelineStage
+        num={3}
+        lang={lang}
+        name={c.process.stages[2].name}
+        what={c.process.stages[2].what}
+        inputLabel={c.process.stages[2].inputLabel}
+        inputValue={'time-gap mean:    54.96 s\ntime-gap jitter:   83.4 %\naltitude stddev:  12.54 m'}
+        outputLabel={c.process.stages[2].outputLabel}
+        outputIframe="/assets/go-active/speed_profile.html"
+        observation={c.process.stages[2].observation}
+      />
+
+      <PipelineStage
+        num={4}
+        lang={lang}
+        name={c.process.stages[3].name}
+        what={c.process.stages[3].what}
+        inputLabel={c.process.stages[3].inputLabel}
+        inputValue={'point density · time-gap jitter\ndropout %       · altitude jitter'}
+        outputLabel={c.process.stages[3].outputLabel}
+        outputValue={'overall:  32.4\ndensity:  37.8   jitter:    16.6\ndropout:  37.8   altitude:  37.3'}
+        observation={c.process.stages[3].observation}
+      />
+
+      <PipelineStage
+        num={5}
+        lang={lang}
+        name={c.process.stages[4].name}
+        what={c.process.stages[4].what}
+        inputLabel={c.process.stages[4].inputLabel}
+        inputValue={'kept: { quality > 50 → render }\nrejected: { return diagnostic }'}
+        outputLabel={c.process.stages[4].outputLabel}
+        outputIframe="/assets/go-active/trajectory_3d.html"
+        observation={c.process.stages[4].observation}
+      />
+    </section>
+
+    <section class="mt-16 pt-8 border-t border-border">
+      <div class="flex items-baseline justify-between flex-wrap gap-2 mb-3">
+        <h2 class="text-2xl font-semibold text-accent">{c.ara.h2}</h2>
+        <span class="font-mono text-xs uppercase tracking-wider text-text-muted">{c.ara.badge}</span>
+      </div>
+      <p class="text-text leading-relaxed" set:html={c.ara.intro} />
+      <p class="text-text-muted text-sm mt-2" set:html={c.ara.liveNote} />
+
+      <h3 class="text-lg font-semibold text-text mt-8 mb-2">{c.ara.twoEngineH3}</h3>
+      <p class="text-text-muted text-sm mb-4">{c.ara.twoEngineP}</p>
+      <pre class="mermaid">graph LR
+  subgraph pre["Pre-render Optimizer"]
+    terrain[("terrain.json<br/>heightmap")]
+    route[("route.json<br/>waypoints")]
+    scorer["viewpoint_scorer<br/>32 candidates × 16 angles"]
+    smoother["path_smoother<br/>Catmull-Rom + damping"]
+    optimizer["optimizer<br/>3 search iterations"]
+    anim[("camera_animation.json")]
+    terrain --> scorer
+    route --> scorer
+    scorer --> optimizer
+    optimizer --> smoother
+    smoother --> anim
+  end
+  subgraph post["Post-render Analyzer"]
+    mp4[("rendered MP4")]
+    va["video_analyzer<br/>7 metric groups"]
+    cma["camera_motion_analyzer<br/>segment classifier"]
+    cr["camera_reconstructor<br/>SfM · SIFT/ORB/AKAZE"]
+    rep[("analysis_report.json")]
+    mp4 --> va
+    mp4 --> cma
+    mp4 --> cr
+    va --> rep
+    cma --> rep
+    cr --> rep
+  end</pre>
+
+      <h3 class="text-lg font-semibold text-text mt-10 mb-2">{c.ara.metricGroupsH3}</h3>
+      <p class="text-text-muted text-sm mb-4" set:html={c.ara.metricGroupsP} />
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {c.ara.cards.map((card, i) => (
+          <div class={`bg-surface border border-border rounded-lg p-4${i === 6 ? ' md:col-span-2' : ''}`}>
+            <div class="flex items-baseline justify-between mb-1">
+              <span class="font-mono text-xs uppercase tracking-wider text-accent">{card.label}</span>
+              <span class="font-mono text-xs text-text-muted">{card.count}</span>
+            </div>
+            <p class="text-text-muted text-xs mb-3" set:html={card.desc} />
+            <pre class="font-mono text-xs text-text">{cardPres[i]}</pre>
+          </div>
+        ))}
+      </div>
+
+      <h3 class="text-lg font-semibold text-text mt-10 mb-2">{c.ara.barsH3}</h3>
+      <p class="text-text-muted text-sm mb-3">{c.ara.barsP}</p>
+      <div class="bg-surface border border-border rounded-lg overflow-hidden" style="height: 360px">
+        <iframe src="/assets/go-active/ara/ara_metric_bars.html" class="w-full h-full border-0" loading="lazy" title="ARA metric bars"></iframe>
+      </div>
+      <p class="mt-3 text-sm text-text-muted italic border-l-2 border-accent pl-3">
+        <span class="font-mono uppercase text-xs not-italic mr-2">{t('pipeline.observed')}</span>
+        <span set:html={c.ara.barsObserved} />
+      </p>
+
+      <h3 class="text-lg font-semibold text-text mt-10 mb-2">{c.ara.timelineH3}</h3>
+      <p class="text-text-muted text-sm mb-3" set:html={c.ara.timelineP} />
+      <div class="bg-surface border border-border rounded-lg overflow-hidden" style="height: 260px">
+        <iframe src="/assets/go-active/ara/ara_motion_timeline.html" class="w-full h-full border-0" loading="lazy" title="ARA motion timeline"></iframe>
+      </div>
+      <p class="mt-3 text-sm text-text-muted italic border-l-2 border-accent pl-3">
+        <span class="font-mono uppercase text-xs not-italic mr-2">{t('pipeline.observed')}</span>
+        <span set:html={c.ara.timelineObserved} />
+      </p>
+
+      <h3 class="text-lg font-semibold text-text mt-10 mb-2">{c.ara.velocityH3}</h3>
+      <p class="text-text-muted text-sm mb-3" set:html={c.ara.velocityP} />
+      <div class="bg-surface border border-border rounded-lg overflow-hidden" style="height: 280px">
+        <iframe src="/assets/go-active/ara/ara_velocity_curve.html" class="w-full h-full border-0" loading="lazy" title="ARA velocity curve"></iframe>
+      </div>
+
+      <h3 class="text-lg font-semibold text-text mt-10 mb-2">{c.ara.optimizerH3}</h3>
+      <p class="text-text-muted text-sm mb-3">{c.ara.optimizerP}</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="bg-surface border border-border rounded-lg p-4">
+          <p class="font-mono text-xs uppercase tracking-wider text-accent mb-2">{c.ara.weightsTitle}</p>
+          <pre class="font-mono text-xs text-text">terrain_visibility   0.25
+scene_depth          0.20
+composition          0.20
+traveler_framing     0.15
+smoothness           0.15
+information_flow     0.05</pre>
+          <p class="text-text-muted text-xs mt-2 italic" set:html={c.ara.weightsNote} />
+        </div>
+        <div class="bg-surface border border-border rounded-lg p-4">
+          <p class="font-mono text-xs uppercase tracking-wider text-accent mb-2">{c.ara.searchTitle}</p>
+          <pre class="font-mono text-xs text-text">candidate_positions     32
+angular_samples         16
+optimization_iterations  3
+camera_height        5–100 m
+camera_distance     10–150 m
+fov                  45°–90°</pre>
+          <p class="text-text-muted text-xs mt-2 italic">{c.ara.searchNote}</p>
+        </div>
+      </div>
+
+      <h3 class="text-lg font-semibold text-text mt-10 mb-2">{c.ara.cliH3}</h3>
+      <p class="text-text-muted text-sm mb-3">{c.ara.cliP}</p>
+      <div class="bg-surface border border-border rounded-lg p-4 overflow-x-auto">
+        <pre class="font-mono text-xs text-text leading-relaxed whitespace-pre">$ ara info               # show version, available metrics
+$ ara create-sample      # generate a heightmap + circular route
+$ ara optimize \           # pre-render: search for best camera path
+    --terrain  terrain.json \
+    --route    route.json \
+    --output   camera_animation.json --fps 30
+$ ara analyze video.mp4  --output report.json   # 7-group quality scoring
+$ ara motion  video.mp4  --output motion.json   # segment classifier
+$ ara reconstruct video.mp4  --detector SIFT \
+    --output trajectory.json --blender scene.py # SfM → Blender script</pre>
+      </div>
+
+      <h3 class="text-lg font-semibold text-text mt-10 mb-2">{c.ara.headsH3}</h3>
+      <p class="text-text-muted text-sm mb-4" set:html={c.ara.headsP} />
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {c.ara.figures.map((fig, i) => (
+          <figure class="bg-surface border border-border rounded-lg overflow-hidden">
+            <div class="bg-bg p-3 flex items-baseline justify-between border-b border-border">
+              <span class={`font-mono text-xs uppercase tracking-wider ${i === 0 ? 'text-text-muted' : 'text-accent'}`}>{fig.label}</span>
+              <span class="font-mono text-xs text-text-muted">{fig.sub}</span>
+            </div>
+            <img src={cvImages[i]} alt={fig.label} class="w-full" loading="lazy" />
+            {fig.caption && (
+              <figcaption class="text-text-muted text-xs px-3 py-2 italic" set:html={fig.caption} />
+            )}
+          </figure>
+        ))}
+      </div>
+
+      <h3 class="text-lg font-semibold text-text mt-10 mb-2">{c.ara.stackH3}</h3>
+      <ul class="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+        {c.ara.stackItems.map((item) => (
+          <li class="bg-surface border border-border rounded p-2">
+            <span class="font-mono text-accent text-xs">{item.term}</span><br />
+            <span class="text-text-muted text-xs">{item.desc}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-xl font-semibold text-accent mb-2">{c.dashboard.h2}</h2>
+      <p class="text-text-muted text-sm mb-4">{c.dashboard.p}</p>
+      <MetricsDashboard
+        src="/assets/go-active/quality_dashboard.svg"
+        alt={c.dashboard.alt}
+        caption={c.dashboard.caption}
+      />
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-xl font-semibold text-accent mb-2">{c.smart.h2}</h2>
+      <p class="text-text-muted text-sm mb-4">{c.smart.p}</p>
+
+      <h3 class="text-lg font-semibold text-text mt-8 mb-2">{c.smart.rendersH3}</h3>
+      <p class="text-text-muted text-sm mb-3">{c.smart.rendersP}</p>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {readyRenders.map((r) => (
+          <div class="relative bg-surface border border-border rounded-lg overflow-hidden flex items-center justify-center" style="height: 360px">
+            <video src={r.src} poster={r.poster} autoplay muted loop playsinline class="h-full w-auto" aria-label={r.label}></video>
+            <div class="absolute top-3 left-3 px-2 py-1 bg-bg/85 border border-border rounded font-mono text-xs text-text-muted">{r.label}</div>
+          </div>
+        ))}
+        {queuedRenders.map((r) => (
+          <div class="relative bg-bg border border-dashed border-border rounded-lg overflow-hidden flex flex-col items-center justify-center text-center px-4" style="height: 360px">
+            <div class="font-mono text-3xl text-accent mb-2">▴</div>
+            <div class="font-mono text-xs text-text-muted uppercase tracking-wider mb-2">{c.smart.queuedLabel}</div>
+            <div class="text-text text-sm leading-snug">{r.label}</div>
+            <div class="text-text-muted text-xs mt-2">{c.smart.queuedNote}</div>
+          </div>
+        ))}
+      </div>
+
+      <h3 class="text-lg font-semibold text-text mt-10 mb-2">{c.smart.flythroughH3}</h3>
+      <p class="text-text-muted text-sm mb-3">{c.smart.flythroughP}</p>
+      <div class="bg-surface border border-border rounded-lg overflow-hidden" style="height: 480px">
+        <iframe src="/assets/go-active/flythrough_animated.html" class="w-full h-full border-0" loading="lazy" title="Animated flythrough"></iframe>
+      </div>
+
+      <h3 class="text-lg font-semibold text-text mt-10 mb-2">{c.smart.loopsH3}</h3>
+      <p class="text-text-muted text-sm mb-3">{c.smart.loopsP}</p>
+      <div class="bg-surface border border-border rounded-lg overflow-hidden" style="height: 420px">
+        <iframe src="/assets/go-active/loops_detected.html" class="w-full h-full border-0" loading="lazy" title="Loop detection"></iframe>
+      </div>
+      <p class="mt-4 text-sm text-text-muted italic border-l-2 border-accent pl-3">
+        <span class="font-mono uppercase text-xs not-italic mr-2">{t('pipeline.observed')}</span>
+        <span set:html={c.smart.loopsObserved} />
+      </p>
+
+      <h3 class="text-lg font-semibold text-text mt-10 mb-2">{c.smart.cameraH3}</h3>
+      <p class="text-text-muted text-sm mb-3">{c.smart.cameraP}</p>
+      <div class="bg-surface border border-border rounded-lg overflow-hidden" style="height: 380px">
+        <iframe src="/assets/go-active/camera_speed_curve.html" class="w-full h-full border-0" loading="lazy" title="Camera speed plan"></iframe>
+      </div>
+      <p class="mt-4 text-sm text-text-muted italic border-l-2 border-accent pl-3">
+        <span class="font-mono uppercase text-xs not-italic mr-2">{t('pipeline.observed')}</span>
+        <span set:html={c.smart.cameraObserved} />
+      </p>
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-xl font-semibold text-accent mb-2">{c.architecture.h2}</h2>
+      <p class="text-text-muted text-sm mb-4">{c.architecture.p1}</p>
+      <pre class="mermaid">graph LR
+  user[Telegram user] -->|GPX upload| bot[Telegram Bot API]
+  bot --> api[FastAPI]
+  api --> s1[1. Parse]
+  s1 --> s2[2. Terrain]
+  s2 --> s3[3. Smooth]
+  s3 --> s4[4. CV scoring]
+  s4 -->|reject| diag[Return diagnostic]
+  s4 -->|keep| s5[5. Render]
+  s5 -->|MP4 + grade| bot
+  bot --> user</pre>
+      <p class="text-text-muted text-sm mt-3">{c.architecture.p2}</p>
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-xl font-semibold text-accent mb-2">{c.stackH2}</h2>
+      <StackList stack={data.stack} />
+    </section>
+
+    <section class="mt-12">
+      <h2 class="text-xl font-semibold text-accent mb-2">{c.links.h2}</h2>
+      <p class="text-text-muted text-sm mb-3" set:html={c.links.p} />
+      <ul class="flex flex-col gap-2">
+        <li>
+          <a href="https://t.me/Vixwibot" target="_blank" rel="noopener" class="inline-flex items-center gap-2 text-accent hover:underline">
+            <span class="font-mono text-text-muted">↗</span>
+            {c.links.tg}
+          </a>
+        </li>
+        <li>
+          <a href="https://vixwi.com/" target="_blank" rel="noopener" class="inline-flex items-center gap-2 text-accent hover:underline">
+            <span class="font-mono text-text-muted">↗</span>
+            {c.links.miniapp}
+          </a>
+        </li>
+      </ul>
+    </section>
+
+    <BuiltBy
+      lang={lang}
+      author="Ed Dubnitsky"
+      scope={c.builtBy.scope}
+      aiAugmented="Claude Code"
+      status={c.builtBy.status}
+    />
+  </main>
+</BaseLayout>

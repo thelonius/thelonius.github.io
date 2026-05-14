@@ -6,32 +6,35 @@ import StatusTag from '../components/StatusTag.astro';
 import MetricsTable from '../components/MetricsTable.astro';
 import StackList from '../components/StackList.astro';
 import LinksList from '../components/LinksList.astro';
+import LangSwitcher from '../components/LangSwitcher.astro';
+import { showcaseSections } from '../i18n/sections';
+import { useTranslations, localizePath } from '../i18n/utils';
+import type { Lang } from '../i18n/ui';
 
 export interface Props {
   project: any; // CollectionEntry<'projects'>
+  lang?: Lang;
 }
 
-const { project } = Astro.props;
-
-const sections = [
-  { id: 'problem', label: 'Problem' },
-  { id: 'approach', label: 'Approach' },
-  { id: 'architecture', label: 'Architecture' },
-  { id: 'metrics', label: 'Metrics' },
-  { id: 'stack', label: 'Stack' },
-  { id: 'links', label: 'Links' },
-];
+const { project, lang = 'en' } = Astro.props;
+const t = useTranslations(lang);
+const sections = showcaseSections[lang];
 ---
 
 <BaseLayout
   title={`${project.data.title} — Ed Dubnitsky`}
   description={project.data.description}
   ogImagePath={project.data.slug}
+  lang={lang}
+  showLangSwitcher={false}
 >
   <header class="sticky top-0 z-10 bg-bg/90 backdrop-blur border-b border-border">
-    <div class="max-w-5xl mx-auto px-6 py-3 flex items-baseline justify-between">
-      <a href="/" class="text-text-muted hover:text-accent text-sm">← back · {project.data.title}</a>
-      <StatusTag status={project.data.status} year={project.data.year} />
+    <div class="max-w-5xl mx-auto px-6 py-3 flex items-baseline justify-between gap-4">
+      <a href={localizePath('/', lang)} class="text-text-muted hover:text-accent text-sm min-w-0 truncate">{t('nav.back')} · {project.data.title}</a>
+      <div class="flex items-baseline gap-3 shrink-0">
+        <StatusTag status={project.data.status} year={project.data.year} />
+        <LangSwitcher variant="inline" />
+      </div>
     </div>
   </header>
 
@@ -61,15 +64,15 @@ const sections = [
 
       {project.data.metrics && project.data.metrics.length > 0 && (
         <>
-          <h2 id="metrics">Metrics</h2>
+          <h2 id="metrics">{t('showcase.section.metrics')}</h2>
           <MetricsTable metrics={project.data.metrics} />
         </>
       )}
 
-      <h2 id="stack">Stack</h2>
+      <h2 id="stack">{t('showcase.section.stack')}</h2>
       <StackList stack={project.data.stack} />
 
-      <h2 id="links">Links</h2>
+      <h2 id="links">{t('showcase.section.links')}</h2>
       <LinksList links={project.data.links} />
     </article>
   </div>

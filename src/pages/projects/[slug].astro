@@ -1,27 +1,24 @@
 ---
-import { getCollection, render, type CollectionEntry } from 'astro:content';
+import { render } from 'astro:content';
 import ShowcaseLayout from '../../layouts/ShowcaseLayout.astro';
+import { getProjects } from '../../i18n/utils';
 
 export async function getStaticPaths() {
-  const projects = await getCollection('projects');
+  const projects = await getProjects('en');
   return projects
-    .filter(p => p.data.deep)
-    .filter(p => p.data.slug !== 'go-active') // custom page at /projects/go-active.astro
-    .filter(p => p.data.slug !== 'proptech') // custom page at /projects/proptech.astro
+    .filter((p) => p.data.deep)
+    .filter((p) => p.data.slug !== 'go-active') // custom page at /projects/go-active.astro
+    .filter((p) => p.data.slug !== 'proptech') // custom page at /projects/proptech.astro
     .map((project) => ({
       params: { slug: project.data.slug },
       props: { project },
     }));
 }
 
-interface Props {
-  project: CollectionEntry<'projects'>;
-}
-
 const { project } = Astro.props;
 const { Content } = await render(project);
 ---
 
-<ShowcaseLayout project={project}>
+<ShowcaseLayout project={project} lang="en">
   <Content />
 </ShowcaseLayout>
