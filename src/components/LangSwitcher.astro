@@ -25,6 +25,7 @@ const wrapClass =
     ) : (
       <a
         href={localizePath(path, code as Lang)}
+        data-lang-link={code}
         class="px-1.5 py-0.5 text-text-muted hover:text-accent transition-colors"
       >{label}</a>
     ),
