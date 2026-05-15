@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ed Dubnitsky — ML Engineer · CV</title>
+<style>
+  @page {
+    size: A4;
+    margin: 18mm 16mm;
+  }
+  html, body {
+    font-family: "Helvetica Neue", "Segoe UI", Arial, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.45;
+    color: #1a1a1a;
+  }
+  body { margin: 0; }
+  h1 {
+    font-size: 24pt;
+    font-weight: 700;
+    margin: 0 0 6pt 0;
+    letter-spacing: -0.3pt;
+  }
+  h2 {
+    font-size: 13pt;
+    font-weight: 700;
+    margin: 14pt 0 6pt 0;
+    padding-bottom: 3pt;
+    border-bottom: 0.6pt solid #d0d0d0;
+  }
+  h3 {
+    font-size: 11pt;
+    font-weight: 700;
+    margin: 10pt 0 2pt 0;
+  }
+  .meta {
+    font-size: 9.5pt;
+    color: #555;
+    margin: 0 0 2pt 0;
+  }
+  .role-line {
+    font-size: 10.5pt;
+    color: #444;
+    margin: 0 0 10pt 0;
+  }
+  .period {
+    font-size: 9.5pt;
+    color: #666;
+    margin: 0 0 4pt 0;
+  }
+  .summary {
+    margin: 4pt 0 4pt 0;
+    color: #333;
+  }
+  ul {
+    margin: 4pt 0 6pt 0;
+    padding-left: 16pt;
+  }
+  li {
+    margin: 1.5pt 0;
+  }
+  .stack {
+    font-size: 9.5pt;
+    color: #444;
+    margin: 4pt 0 8pt 0;
+  }
+  .stack b { color: #1a1a1a; }
+  .competencies p {
+    margin: 3pt 0;
+  }
+  .competencies b {
+    color: #1a1a1a;
+  }
+  .header-block {
+    margin-bottom: 6pt;
+  }
+  .job {
+    page-break-inside: avoid;
+    margin-bottom: 4pt;
+  }
+  a { color: #1a1a1a; text-decoration: none; }
+  .divider {
+    border: none;
+    border-top: 0.6pt solid #d0d0d0;
+    margin: 8pt 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="header-block">
+  <h1>Ed Dubnitsky</h1>
+  <p class="role-line"><b>ML Engineer</b> · Backend &amp; Data · 12+ years</p>
+  <p class="summary">Fullstack engineer with 12+ years of shipping software, the past year fully on production AI. Comfortable with training and applying neural-network models (PyTorch, Transformers), computer vision (OpenCV), NLP, and LLM integration. Strong background in data visualisation and SQL analytics.</p>
+  <p class="meta">
+    <a href="mailto:dubnitsky@gmail.com">dubnitsky@gmail.com</a> ·
+    Telegram <a href="https://t.me/edubnitsky">@edubnitsky</a> ·
+    GitHub <a href="https://github.com/thelonius">thelonius</a> ·
+    LinkedIn <a href="https://www.linkedin.com/in/eduard-dubnitsky-baa2771a/">eduard-dubnitsky</a>
+  </p>
+  <p class="meta">Remote · EU-aligned working hours · English C1 · Russian native</p>
+</div>
+
+<h2>Target Role</h2>
+<p><b>ML Engineer</b> — production RAG, computer vision, multi-provider LLM pipelines.</p>
+<p class="meta">Full-time, remote. Open to relocation and business travel.</p>
+
+<h2>Core Competencies</h2>
+<div class="competencies">
+  <p><b>ML / AI:</b> PyTorch, TensorFlow, Transformers (HuggingFace), OpenCV, NLP, Computer Vision, LLM integration (GPT-4, Claude, Ollama, Groq, NVIDIA NIM), RAG, Qdrant, embeddings, semantic search</p>
+  <p><b>Backend:</b> Python, FastAPI, asyncio, Pydantic, Celery, Flask, Django, Node.js / Express, REST, WebSocket, SSE</p>
+  <p><b>Data:</b> NumPy, Pandas, SciPy, Matplotlib, Plotly, SQL analytics, ECharts, Dremio</p>
+  <p><b>Databases:</b> PostgreSQL, SQL Server (T-SQL, SPXML), Redis, MongoDB</p>
+  <p><b>Frontend:</b> React, Vue.js, TypeScript, Next.js, Nuxt, Astro, HTML5 / CSS3</p>
+  <p><b>Infrastructure:</b> Docker, Docker Compose, Ubuntu / Linux, nginx, CI/CD, GitHub Actions, Prometheus, Git</p>
+  <p><b>Quality:</b> pytest, mypy, ruff, evaluation harnesses, ADRs, structured logging</p>
+  <p><b>Other:</b> Telegram Bot API, REST API design, WebSocket, FFmpeg</p>
+</div>
+
+<h2>Experience — 12+ years</h2>
+
+<div class="job">
+  <h3>ML Engineer — Go-Active (Telegram Mini App)</h3>
+  <p class="period">April 2025 — present · Remote</p>
+  <p class="summary"><b>GPS-route visualization and analysis platform with ML analytics.</b> Built the Telegram Mini App from scratch: GPS-track upload, cinematic 3D-video generation, computer-vision module for render-quality scoring and camera-trajectory reconstruction from video (Structure-from-Motion).</p>
+  <ul>
+    <li>Implemented the ML pipeline: depth estimation (MiDaS / PyTorch), 15+ video-quality metrics, automatic route-pattern classification</li>
+    <li>Designed the service architecture: 5-stage render pipeline, memory monitoring, Docker container orchestration</li>
+    <li>Test coverage with pytest, strict typing with mypy, linting with ruff</li>
+  </ul>
+  <p class="stack"><b>Stack:</b> Python, PyTorch, OpenCV, NumPy / SciPy / Pandas, Pydantic, React, TypeScript, Docker, FFmpeg, CesiumJS</p>
+</div>
+
+<div class="job">
+  <h3>Frontend Engineer — MCCME (Moscow Centre for Continuous Mathematical Education)</h3>
+  <p class="period">June 2023 — March 2025 (1 yr 10 mo) · Moscow · 7.math.ru</p>
+  <ul>
+    <li>Built a course-editing platform for math curricula from scratch (React, TypeScript, Redux Toolkit, Redux-Saga)</li>
+    <li>Rewrote the publication admin panel from scratch</li>
+    <li>Component refactor and React upgrade to current version</li>
+  </ul>
+</div>
+
+<div class="job">
+  <h3>Analytics Engineer — GoodData</h3>
+  <p class="period">September 2022 — May 2023 (9 mo) · Prague, Czech Republic · gooddata.com</p>
+  <ul>
+    <li>Built data marts with interactive charts for the BI low-code platform from scratch</li>
+    <li>Customizable data-visualization widgets: metrics, dimensions, thresholds, gradients</li>
+    <li>Worked in a small team with the analytics lead; code review in GitLab</li>
+  </ul>
+  <p class="stack"><b>Stack:</b> Vue 2, ECharts, TypeScript, Dremio, Git</p>
+</div>
+
+<div class="job">
+  <h3>Lead Analytics Engineer — MediaMarktSaturn (L&amp;D Platform)</h3>
+  <p class="period">August 2018 — July 2022 (4 yrs) · Ingolstadt, Germany · mediamarktsaturn.com</p>
+  <p class="summary">Internal learning &amp; development analytics platform for tens of thousands of store associates across the retail group.</p>
+  <ul>
+    <li>Built and ran the L&amp;D analytics platform (frontend + backend). Promoted to tech lead after the first two years, ran the department solo for ~6 months and rebuilt the team from scratch</li>
+    <li>Designed the T-SQL / SPXML reporting layer: complex threshold- and gradient-driven queries with parameterised triggers</li>
+    <li>Migrated the UI to Vuetify; built new manager and employee dashboards</li>
+    <li>Cut bundle payload by 50%</li>
+    <li>Authored SQL endpoints for every new interface</li>
+  </ul>
+  <p class="stack"><b>Stack:</b> Vue.js, Nuxt, Vuetify, JavaScript ES6, SQL Server (T-SQL, SPXML), Sass, Vite</p>
+</div>
+
+<div class="job">
+  <h3>Web Developer — 101XP</h3>
+  <p class="period">May 2017 — March 2018 (11 mo) · Moscow · 101xp.com</p>
+  <ul>
+    <li>Cross-browser, responsive markup for promo pages and site sections</li>
+    <li>React, Node.js, Docker, Python / Django</li>
+  </ul>
+</div>
+
+<div class="job">
+  <h3>Webmaster — iruntheflight.com (Independent)</h3>
+  <p class="period">September 2014 — May 2017 (2 yrs 9 mo) · Remote</p>
+  <ul>
+    <li>Built and ran a specialised aviation web service</li>
+    <li>Picked up Python, Flask, Jekyll</li>
+  </ul>
+</div>
+
+<div class="job">
+  <h3>Systems Administrator — NP GLONASS</h3>
+  <p class="period">February 2013 — September 2014 (1 yr 8 mo) · Moscow · glonassunion.ru</p>
+  <ul>
+    <li>Backup rollout (Symantec), virtualisation (VMware ESX)</li>
+    <li>Linux, Mikrotik, PostgreSQL, nginx, Tomcat administration</li>
+    <li>24/7 IT-service monitoring</li>
+  </ul>
+</div>
+
+<h2>Personal Projects</h2>
+
+<div class="job">
+  <h3>Astro-Scheduler — astronomical scheduling with ML</h3>
+  <p class="summary">Fullstack platform for personalised scheduling: 17+ astronomical data layers, LLM pipeline for rule generation, constraint-satisfaction solver for schedule optimisation.</p>
+  <ul>
+    <li>Python / FastAPI service for astronomical computations (ephemerides, lunar phases, transits)</li>
+    <li>ML feedback loop: the system learns from outcomes and adjusts recommendation weights</li>
+    <li>GPT-4 / Claude integration for natural-language rule generation and validation</li>
+    <li>PostgreSQL for natal charts, rules, user feedback</li>
+  </ul>
+  <p class="stack"><b>Stack:</b> Python, FastAPI, PostgreSQL, React, TypeScript, Docker, OpenAI API, NumPy</p>
+</div>
+
+<div class="job">
+  <h3>YouTube Voice Actor — AI system for analysing and voicing YouTube comments (production)</h3>
+  <p class="summary">Telegram bot and web app that parses YouTube comments, runs emotion analysis, and synthesises speech with voice cloning.</p>
+  <ul>
+    <li>NLP pipeline: language detection (16 languages), emotion analysis (RoBERTa / Transformers), sentiment classification</li>
+    <li>Neural TTS (XTTS v2) with voice cloning and emotional colouring</li>
+    <li>Two interfaces: Telegram bot (python-telegram-bot) and web app (FastAPI + frontend)</li>
+  </ul>
+  <p class="stack"><b>Stack:</b> Python, FastAPI, Flask, PyTorch, Transformers, XTTS, Telegram Bot API</p>
+</div>
+
+<div class="job">
+  <h3>OpenClaw AI Assistant (Cronos)</h3>
+  <p class="summary">Personal AI assistant on the OpenClaw platform for automating job search, task management, and service integration.</p>
+  <ul>
+    <li>Built skills for vacancy parsing across Telegram channels and job boards; automated morning and evening parsers</li>
+    <li>Heartbeat system (HEARTBEAT.md) for periodic email, calendar, and vacancy checks without manual intervention</li>
+    <li>Integrated exec, memory, and filesystem tools for reading and analysing CVs, vacancies, and configs</li>
+    <li>Safe-mode operation: mandatory command approval via exec</li>
+    <li>Markdown knowledge base (MEMORY.md, dated memory) for long-term context and learning from past sessions</li>
+  </ul>
+  <p class="stack"><b>Stack:</b> Python, OpenClaw CLI, Telegram API, Git, Markdown, Bash</p>
+</div>
+
+<h2>Education</h2>
+<p><b>Moscow State Open University (V.S. Chernomyrdin)</b> — 2008<br>
+Applied Mathematics and Informatics · Major: Global Information Management Systems</p>
+<p><b>Continued education:</b> HTML Academy — JavaScript Developer, advanced course (2018)</p>
+
+<h2>Languages &amp; Other</h2>
+<p><b>Languages:</b> Russian — native; English — C1 (fluent spoken and written)</p>
+<p><b>Driving licence:</b> A, B</p>
+
+</body>
+</html>

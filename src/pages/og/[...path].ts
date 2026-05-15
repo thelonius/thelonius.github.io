@@ -5,7 +5,7 @@ const projects = await getCollection('projects');
 
 const pages: Record<string, { title: string; description: string }> = {
   home: {
-    title: 'Ed Dubnitsky — AI/ML Engineer',
+    title: 'Ed Dubnitsky — ML Engineer',
     description: 'Production RAG, computer vision, multi-provider LLM. Five case studies.',
   },
 };

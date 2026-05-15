@@ -58,13 +58,13 @@ const contactBase = [
 export const home: Record<Lang, HomeContent> = {
   en: {
     meta: {
-      title: 'Ed Dubnitsky — AI/ML Engineer',
+      title: 'Ed Dubnitsky — ML Engineer',
       description:
-        'AI/ML Engineer building production RAG, computer vision, and multi-provider LLM pipelines. Five in-depth case studies.',
+        'ML Engineer building production RAG, computer vision, and multi-provider LLM pipelines. Five in-depth case studies.',
     },
     hero: {
       name: 'Ed Dubnitsky',
-      roleLine: 'AI/ML Engineer · Remote-first · EN C1',
+      roleLine: 'ML Engineer · Remote-first · EN C1',
       lead: 'I build the plumbing that turns LLM and computer-vision models into reliable services. Production RAG on FastAPI + Qdrant, multi-provider orchestration, cost-aware engineering, evaluation harnesses as CI gates, 3D and CV pipelines on PyTorch.',
       sub: '12 years shipping software · past year fully on production AI · two of the projects below shipped in under two weeks combined via AI-augmented coding.',
       nav: { projects: '[ projects ]', about: '[ about ]', contact: '[ contact ]' },
@@ -73,7 +73,7 @@ export const home: Record<Lang, HomeContent> = {
     about: {
       eyebrow: 'About',
       heading: '12 years shipping software, past year fully on AI',
-      p1: 'I started with Vue and React, pivoted a year ago to AI/ML — a full reorientation with real retraining behind it. Now I build the plumbing that turns LLMs and computer-vision models from toys into reliable services.',
+      p1: 'Started with Vue and React. Spent several years at the data/frontend boundary: T-SQL reports and L&D analytics at a corporate retail group, leading a small team for the last stretch and running the department solo for half a year; then data marts and BI widgets over Dremio at a BI vendor. A year ago pivoted fully to ML, with real retraining behind it. Now I build the plumbing that turns LLMs and computer-vision models from toys into reliable services.',
       focusLabel: 'What I focus on:',
       focus: [
         { strong: 'RAG and LLM pipelines in production', rest: ' — intent parsing, semantic retrieval, explainable re-ranking' },
@@ -90,9 +90,10 @@ export const home: Record<Lang, HomeContent> = {
       eyebrow: 'Experience',
       heading: "Where I've worked",
       rows: [
-        { period: '2023 — now', role: 'AI/ML Engineer · Pandora Software Consulting Ltd' },
+        { period: '2023 — now', role: 'ML Engineer · Pandora Software Consulting Ltd' },
+        { period: '2022 — 2023', role: 'Analytics Engineer · Goodt' },
         { period: '2021 — now', role: 'Senior Full-Stack Engineer · radian (parallel)' },
-        { period: '2019 — 2022', role: 'Frontend Developer · MediaMarktSaturn' },
+        { period: '2019 — 2022', role: 'Lead Analytics Engineer · L&D platform · MediaMarktSaturn' },
       ],
     },
     skills: {
@@ -111,20 +112,20 @@ export const home: Record<Lang, HomeContent> = {
       heading: 'Reach me',
       rows: [
         ...contactBase,
-        { label: 'Resume', href: '/ed-dubnitsky-cv.pdf', text: '↓ ed-dubnitsky-cv.pdf', download: true },
+        { label: 'Resume', href: '/ed-dubnitsky-cv-en.pdf', text: '↓ ed-dubnitsky-cv-en.pdf', download: true },
       ],
     },
     footer: { pre: 'Built with Astro · source-viewable on ', linkLabel: 'GitHub' },
   },
   ru: {
     meta: {
-      title: 'Ed Dubnitsky — AI/ML-инженер',
+      title: 'Ed Dubnitsky — ML-инженер',
       description:
-        'AI/ML-инженер: продакшен-RAG, компьютерное зрение и мультипровайдерные LLM-конвейеры. Пять подробных кейсов.',
+        'ML-инженер: продакшен-RAG, компьютерное зрение и мультипровайдерные LLM-конвейеры. Пять подробных кейсов.',
     },
     hero: {
       name: 'Ed Dubnitsky',
-      roleLine: 'AI/ML-инженер · Удалёнка · EN C1',
+      roleLine: 'ML-инженер · Удалёнка · EN C1',
       lead: 'Я делаю обвязку, которая превращает LLM и модели компьютерного зрения в надёжные сервисы. Продакшен-RAG на FastAPI + Qdrant, оркестрация нескольких провайдеров, инженерия с оглядкой на стоимость, harness’ы оценки как CI-гейты, 3D- и CV-конвейеры на PyTorch.',
       sub: '12 лет выпускаю софт · последний год полностью в продакшен-ИИ · два проекта ниже собраны меньше чем за две недели суммарно через кодинг с ИИ.',
       nav: { projects: '[ проекты ]', about: '[ о себе ]', contact: '[ контакты ]' },
@@ -133,7 +134,7 @@ export const home: Record<Lang, HomeContent> = {
     about: {
       eyebrow: 'О себе',
       heading: '12 лет выпускаю софт, последний год полностью в ИИ',
-      p1: 'Начинал с Vue и React. Год назад полностью переключился на AI/ML — это была настоящая смена специализации, с переучиванием. Теперь делаю обвязку, которая превращает LLM и модели компьютерного зрения из игрушек в надёжные сервисы.',
+      p1: 'Начинал с Vue и React. Несколько лет работал на стыке данных и фронтенда: T-SQL отчёты и аналитика в корпоративном обучающем центре крупного ритейлера, под конец вёл небольшую команду и полгода тянул отдел один; потом витрины и BI-виджеты поверх Dremio в BI-вендоре. Год назад переключился на ML, с переучиванием. Теперь делаю обвязку, которая превращает LLM и модели компьютерного зрения из игрушек в надёжные сервисы.',
       focusLabel: 'На чём фокусируюсь:',
       focus: [
         { strong: 'RAG и LLM-конвейеры в продакшене', rest: ' — разбор интента, семантический retrieval, объяснимый ре-ранкинг' },
@@ -150,9 +151,10 @@ export const home: Record<Lang, HomeContent> = {
       eyebrow: 'Опыт',
       heading: 'Где работал',
       rows: [
-        { period: '2023 — сейчас', role: 'AI/ML-инженер · Pandora Software Consulting Ltd' },
+        { period: '2023 — сейчас', role: 'ML-инженер · Pandora Software Consulting Ltd' },
+        { period: '2022 — 2023', role: 'Analytics-инженер · Goodt' },
         { period: '2021 — сейчас', role: 'Senior Full-Stack инженер · radian (параллельно)' },
-        { period: '2019 — 2022', role: 'Frontend-разработчик · MediaMarktSaturn' },
+        { period: '2019 — 2022', role: 'Lead Analytics-инженер · L&D-платформа · MediaMarktSaturn' },
       ],
     },
     skills: {
