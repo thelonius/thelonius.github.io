@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import LangSwitcher from '../components/LangSwitcher.astro';
+import LangBoot from '../components/LangBoot.astro';
 import AstroThemeBoot from '../components/AstroThemeBoot.astro';
 import AstroThemeManager from '../components/AstroThemeManager.astro';
 import type { Lang } from '../i18n/ui';
@@ -31,6 +32,7 @@ const ogLocale = lang === 'ru' ? 'ru_RU' : 'en_US';
 <!DOCTYPE html>
 <html lang={lang}>
 <head>
+  <LangBoot />
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
