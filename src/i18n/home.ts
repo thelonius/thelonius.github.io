@@ -151,10 +151,10 @@ export const home: Record<Lang, HomeContent> = {
       eyebrow: 'Опыт',
       heading: 'Где работал',
       rows: [
-        { period: '2023 — сейчас', role: 'ML-инженер · Pandora Software Consulting Ltd' },
+        { period: '2023 — сейчас', role: 'ML-инженер · МЦНМО / Пандора' },
         { period: '2022 — 2023', role: 'Analytics-инженер · Goodt' },
-        { period: '2021 — сейчас', role: 'Senior Full-Stack инженер · radian (параллельно)' },
-        { period: '2019 — 2022', role: 'Lead Analytics-инженер · L&D-платформа · MediaMarktSaturn' },
+        { period: '2021 — 2022', role: 'Senior Full-Stack инженер · radian (параллельно)' },
+        { period: '2019 — 2022', role: 'Lead Analytics-инженер · L&D-платформа · Мерлион / Ситилинк' },
       ],
     },
     skills: {
