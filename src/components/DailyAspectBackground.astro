@@ -1,0 +1,265 @@
+---
+/**
+ * Полноэкранный фон-паттерн на основе сегодняшнего расположения планет.
+ *
+ * Архитектура повторяет EdMonogram.astro:
+ *   - На сервере рендерится статичный inline-SVG для текущей даты сборки
+ *     (виден сразу, работает без JS, для роботов и prefers-reduced-motion)
+ *   - Поверх клиентский <canvas>, который пересчитывает паттерн каждый
+ *     кадр и подкрашивает его токенами темы (--color-accent, --color-text),
+ *     поэтому при смене планетарного часа цвет фона плавно едет вместе
+ *     с остальной палитрой сайта (800ms transition в global.css)
+ *
+ * Геометрия живёт в `astro-aspect-patterns`, эфемериды — в
+ * `~/lib/todayChart.ts`. Тут только композиция и связка с темой.
+ */
+import { aspectField, monochromePalette, toSVG } from 'astro-aspect-patterns';
+import { todayChart } from '../lib/todayChart';
+
+interface Props {
+  /** Доля высоты viewport, которую занимает фон. Default 100. */
+  vh?: number;
+  /** z-index слоя. Default -1 (под контентом). */
+  zIndex?: number;
+  /** Радиус кольца планет как доля min(width, height). Default 0.32. */
+  ringRadius?: number;
+  /** Базовый радиус halo как доля кольца. Default 0.05. */
+  haloRadius?: number;
+  /** Базовая толщина хорд в пикселях. Default 1.0. */
+  chordWidth?: number;
+  /** Максимальный орб (°) для детекции аспектов. Default 8. */
+  maxOrb?: number;
+}
+
+const {
+  vh = 100,
+  zIndex = -1,
+  ringRadius = 0.32,
+  haloRadius = 0.05,
+  chordWidth = 1.0,
+  maxOrb = 8,
+} = Astro.props;
+
+// Server-side: рассчитываем сцену на момент build-time (UTC-полдень сегодняшнего дня).
+// Это «общая для всех посетителей» статика — клиентский слой потом перерисует
+// под точное локальное время каждого посетителя.
+const buildDate = new Date();
+buildDate.setUTCHours(12, 0, 0, 0);
+
+const input = todayChart({ date: buildDate, maxOrb });
+
+// На сервере у нас нет настоящих токенов CSS. Берём дефолтные значения из
+// global.css (initial OKLCH palette до того как AstroThemeBoot перепишет
+// :root). Эти же цвета остаются видимыми когда JS выключен.
+const FALLBACK_ACCENT = 'oklch(75% 0.140 220)';
+const FALLBACK_INK    = 'oklch(92% 0.005 245)';
+
+const STATIC_SIZE = 1600;
+const staticScene = aspectField(
+  {
+    ...input,
+    palette: monochromePalette(FALLBACK_ACCENT, FALLBACK_INK, null),
+  },
+  {
+    width: STATIC_SIZE,
+    height: STATIC_SIZE,
+    ringRadius,
+    maxOrb,
+    chordWidth,
+    haloRadius,
+    haloOpacity: 0.12,
+    nodeMarkers: false,
+    standalone: false,
+  },
+);
+const staticSvg = toSVG(staticScene);
+---
+
+<div
+  class="daily-aspect-bg"
+  style={`--dab-vh:${vh}vh; --dab-z:${zIndex};`}
+  aria-hidden="true"
+>
+  <div class="daily-aspect-bg__fallback" set:html={staticSvg} />
+  <canvas
+    data-daily-aspect-bg
+    class="daily-aspect-bg__gl"
+    data-ring-radius={ringRadius}
+    data-halo-radius={haloRadius}
+    data-chord-width={chordWidth}
+    data-max-orb={maxOrb}
+  >
+  </canvas>
+</div>
+
+<style>
+  .daily-aspect-bg {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: var(--dab-vh, 100vh);
+    z-index: var(--dab-z, -1);
+    pointer-events: none;
+    overflow: hidden;
+    contain: strict;
+  }
+  .daily-aspect-bg__fallback,
+  .daily-aspect-bg__gl {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  /* SVG-фоллбэк: тонкое масштабирование, чтобы не разрывалась картинка. */
+  .daily-aspect-bg__fallback :global(svg) {
+    width: 100%;
+    height: 100%;
+    transition: opacity 400ms ease;
+  }
+  .daily-aspect-bg__gl {
+    opacity: 0;
+    transition: opacity 600ms ease;
+  }
+  .daily-aspect-bg[data-canvas-ready] .daily-aspect-bg__fallback :global(svg) {
+    opacity: 0;
+  }
+  .daily-aspect-bg[data-canvas-ready] .daily-aspect-bg__gl {
+    opacity: 1;
+  }
+</style>
+
+<script>
+  import { aspectField, monochromePalette, toCanvas } from 'astro-aspect-patterns';
+  import { todayChart } from '../lib/todayChart';
+
+  /**
+   * Resolve a CSS custom property to an actual RGB color string. Handles
+   * any browser color space (oklch, lab, color()) by going through canvas
+   * 2D as a normaliser. Mirrors the approach from EdMonogram.astro.
+   */
+  let _colorEl: HTMLDivElement | null = null;
+  function resolveCssColor(varName: string, fallback: string): string {
+    if (!_colorEl) {
+      _colorEl = document.createElement('div');
+      _colorEl.style.position = 'absolute';
+      _colorEl.style.visibility = 'hidden';
+      document.body.appendChild(_colorEl);
+    }
+    _colorEl.style.color = `var(${varName}, ${fallback})`;
+    return getComputedStyle(_colorEl).color || fallback;
+  }
+
+  function dailyRotationDeg(): number {
+    const now = new Date();
+    const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return ((now.getTime() - midnight.getTime()) / 1000 / 86400) * 360;
+  }
+
+  function mount(canvas: HTMLCanvasElement) {
+    const wrapper = canvas.closest('.daily-aspect-bg') as HTMLDivElement | null;
+    if (!wrapper) return;
+
+    const ringRadius = Number(canvas.dataset.ringRadius ?? '0.32');
+    const haloRadius = Number(canvas.dataset.haloRadius ?? '0.05');
+    const chordWidth = Number(canvas.dataset.chordWidth ?? '1.0');
+    const maxOrb     = Number(canvas.dataset.maxOrb ?? '8');
+
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const ctx = canvas.getContext('2d', { alpha: true });
+    if (!ctx) return;
+
+    // Refresh the chart every 5 minutes — fine resolution for the fast
+    // bodies (Moon ~3.3° / hour) while keeping CPU near zero.
+    let cachedChart = todayChart({ maxOrb });
+    let cachedAt = performance.now();
+    const CHART_TTL = 5 * 60 * 1000;
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    function resize() {
+      const w = wrapper!.clientWidth;
+      const h = wrapper!.clientHeight;
+      canvas.width  = Math.max(1, Math.floor(w * dpr));
+      canvas.height = Math.max(1, Math.floor(h * dpr));
+      canvas.style.width  = `${w}px`;
+      canvas.style.height = `${h}px`;
+      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    const t0 = performance.now() / 1000;
+    let rafId = 0;
+
+    function frame() {
+      const tSec = (performance.now() / 1000) - t0;
+
+      // Refresh ephemeris cache occasionally.
+      if (performance.now() - cachedAt > CHART_TTL) {
+        cachedChart = todayChart({ maxOrb });
+        cachedAt = performance.now();
+      }
+
+      const accent = resolveCssColor('--color-accent', '#7dd3fc');
+      const ink    = resolveCssColor('--color-text',   '#e6e9ef');
+      const muted  = resolveCssColor('--color-text-muted', '#8a93b8');
+      void muted;
+
+      const palette = monochromePalette(accent, ink, null);
+      const w = canvas!.clientWidth;
+      const h = canvas!.clientHeight;
+      const minDim = Math.min(w, h);
+
+      const scene = aspectField(
+        { ...cachedChart, palette },
+        {
+          width: w,
+          height: h,
+          rotation: dailyRotationDeg(),
+          ringRadius: ringRadius * (w / minDim || 1),
+          maxOrb,
+          chordWidth,
+          haloRadius,
+          haloOpacity: 0.14,
+          nodeMarkers: true,
+          nodeRadius: 2.0,
+          time: reduced ? 0 : tSec,
+          pulsation: reduced ? 0 : 0.18,
+          pulsationFreq: 0.12,
+          nodeBreathing: reduced ? 0 : 1.5,
+          standalone: false,
+        },
+      );
+
+      ctx!.clearRect(0, 0, canvas!.width, canvas!.height);
+      toCanvas(scene, ctx!);
+
+      if (!reduced) {
+        rafId = requestAnimationFrame(frame);
+      }
+    }
+    frame();
+    wrapper!.dataset.canvasReady = '1';
+
+    // Pause when page is hidden — saves CPU on tabbed browsing.
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = 0;
+      } else if (!reduced && !rafId) {
+        rafId = requestAnimationFrame(frame);
+      }
+    });
+  }
+
+  function init() {
+    document.querySelectorAll<HTMLCanvasElement>('canvas[data-daily-aspect-bg]').forEach(mount);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+</script>

@@ -4,6 +4,7 @@ import LangSwitcher from '../components/LangSwitcher.astro';
 import LangBoot from '../components/LangBoot.astro';
 import AstroThemeBoot from '../components/AstroThemeBoot.astro';
 import AstroThemeManager from '../components/AstroThemeManager.astro';
+import DailyAspectBackground from '../components/DailyAspectBackground.astro';
 import type { Lang } from '../i18n/ui';
 
 export interface Props {
@@ -57,6 +58,7 @@ const ogLocale = lang === 'ru' ? 'ru_RU' : 'en_US';
   <AstroThemeBoot />
 </head>
 <body class="bg-bg text-text font-sans">
+  <DailyAspectBackground />
   {showLangSwitcher && <LangSwitcher />}
   <slot />
   <AstroThemeManager />

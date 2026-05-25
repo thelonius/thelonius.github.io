@@ -9,6 +9,7 @@ export async function getStaticPaths() {
     .filter((p) => p.data.deep)
     .filter((p) => p.data.slug !== 'go-active') // custom page at /projects/go-active.astro
     .filter((p) => p.data.slug !== 'proptech') // custom page at /projects/proptech.astro
+    .filter((p) => p.data.slug !== 'astro-palette') // custom page at /projects/astro-palette.astro
     .map((project) => ({
       params: { slug: project.data.slug },
       props: { project },

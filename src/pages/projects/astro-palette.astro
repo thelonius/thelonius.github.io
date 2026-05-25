@@ -1,0 +1,51 @@
+---
+import ShowcaseLayout from '../../layouts/ShowcaseLayout.astro';
+import AstroPaletteDemo from '../../components/showcase/AstroPaletteDemo.astro';
+import { getCollection } from 'astro:content';
+
+const projects = await getCollection('projects');
+const project = projects.find(p => p.data.slug === 'astro-palette');
+
+if (!project) {
+  return Astro.redirect('/404');
+}
+---
+
+<ShowcaseLayout project={project} lang="en">
+  <div class="space-y-12">
+    <section>
+      <h2 id="overview">Engine Overview</h2>
+      <p>
+        The <strong>Astro Palette</strong> engine is a mathematical bridge between astronomy and design. 
+        Instead of picking random colors, it uses the positions of celestial bodies to derive a 
+        harmonious OKLCH color palette that evolves in real-time.
+      </p>
+      <p>
+        It implements a simplified version of Meeus' astronomical algorithms to calculate 
+        the ecliptic longitude of planets, which then maps to the hue of the current planetary hour.
+      </p>
+    </section>
+
+    <section>
+      <h2 id="interactive">Interactive Playground</h2>
+      <p>
+        Experiment with the engine below. Change the date, your location, or the calculation 
+        mode to see how the palette shifts. The <strong>Geocentric</strong> mode produces a 
+        unique palette every day, while <strong>Fixed</strong> follows a weekly planetary cycle.
+      </p>
+      <AstroPaletteDemo />
+    </section>
+
+    <section>
+      <h2 id="logic">The Logic</h2>
+      <p>
+        The palette is built on three pillars:
+      </p>
+      <ul>
+        <li><strong>Planetary Hours:</strong> Based on the Chaldean order, determining the "Ruler" of the current hour.</li>
+        <li><strong>OKLCH Space:</strong> Ensures perceptual uniformity, meaning the "brightness" and "intensity" of colors stay consistent even as the hue changes.</li>
+        <li><strong>Aspect Modulation:</strong> (Optional) Boosts chroma or lightness when planets form specific geometric aspects (like conjunctions or oppositions).</li>
+      </ul>
+    </section>
+  </div>
+</ShowcaseLayout>

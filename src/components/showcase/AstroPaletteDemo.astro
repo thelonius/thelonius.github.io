@@ -1,0 +1,149 @@
+---
+/**
+ * AstroPaletteDemo.astro
+ * Interactive playground for the astro-palette engine.
+ */
+---
+
+<div class="palette-demo-container bg-surface border border-border rounded-xl p-6 my-8 font-mono text-sm">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <!-- Controls -->
+    <div class="space-y-6">
+      <h3 class="text-lg font-semibold text-accent mb-4">Configuration</h3>
+      
+      <div class="flex flex-col gap-2">
+        <label class="text-text-muted">Date & Time</label>
+        <input type="datetime-local" id="palette-date" class="bg-bg border border-border rounded px-3 py-2 text-text focus:outline-none focus:border-accent" />
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div class="flex flex-col gap-2">
+          <label class="text-text-muted">Latitude</label>
+          <input type="number" id="palette-lat" step="0.01" class="bg-bg border border-border rounded px-3 py-2 text-text focus:outline-none focus:border-accent" />
+        </div>
+        <div class="flex flex-col gap-2">
+          <label class="text-text-muted">Longitude</label>
+          <input type="number" id="palette-lon" step="0.01" class="bg-bg border border-border rounded px-3 py-2 text-text focus:outline-none focus:border-accent" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div class="flex flex-col gap-2">
+          <label class="text-text-muted">Mode</label>
+          <select id="palette-mode" class="bg-bg border border-border rounded px-3 py-2 text-text focus:outline-none focus:border-accent">
+            <option value="dark">Dark</option>
+            <option value="light">Light</option>
+          </select>
+        </div>
+        <div class="flex flex-col gap-2">
+          <label class="text-text-muted">Hue Source</label>
+          <select id="palette-hue" class="bg-bg border border-border rounded px-3 py-2 text-text focus:outline-none focus:border-accent">
+            <option value="geocentric">Geocentric (Real)</option>
+            <option value="fixed">Fixed (Table)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <input type="checkbox" id="palette-aspects" class="w-4 h-4 accent-accent" />
+        <label for="palette-aspects" class="text-text-muted cursor-pointer">Apply Aspect Modulation</label>
+      </div>
+    </div>
+
+    <!-- Output -->
+    <div class="flex flex-col gap-6">
+      <h3 class="text-lg font-semibold text-accent mb-4">Live State</h3>
+      
+      <div class="grid grid-cols-2 gap-4">
+        <div class="bg-bg p-3 rounded border border-border">
+          <span class="text-text-muted block text-xs uppercase">Hour Ruler</span>
+          <span id="out-ruler" class="text-lg font-bold text-text">-</span>
+        </div>
+        <div class="bg-bg p-3 rounded border border-border">
+          <span class="text-text-muted block text-xs uppercase">Day Ruler</span>
+          <span id="out-dayruler" class="text-lg font-bold text-text">-</span>
+        </div>
+      </div>
+
+      <div class="bg-bg p-3 rounded border border-border">
+        <span class="text-text-muted block text-xs uppercase">Moon Phase</span>
+        <span id="out-moon" class="text-lg font-bold text-text">-</span>
+      </div>
+
+      <div class="space-y-2">
+        <span class="text-text-muted block text-xs uppercase">Active Palette</span>
+        <div id="palette-swatches" class="grid grid-cols-4 gap-2">
+          <!-- Swatches injected here -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { computeState, coordsForTimezone } from 'astro-palette';
+
+  function update() {
+    const dateVal = document.getElementById('palette-date').value;
+    const latVal = parseFloat(document.getElementById('palette-lat').value);
+    const lonVal = parseFloat(document.getElementById('palette-lon').value);
+    const mode = document.getElementById('palette-mode').value;
+    const hueSource = document.getElementById('palette-hue').value;
+    const applyAspects = document.getElementById('palette-aspects').checked;
+
+    const date = dateVal ? new Date(dateVal) : new Date();
+    
+    const st = computeState(date, latVal, lonVal, {
+      mode,
+      hueSource,
+      applyAspects
+    });
+
+    // Update DOM
+    document.getElementById('out-ruler').textContent = st.hour.ruler;
+    document.getElementById('out-dayruler').textContent = st.hour.dayRuler;
+    document.getElementById('out-moon').textContent = `${st.moon.emoji} ${st.moon.name}`;
+
+    // Update Root CSS
+    for (const [k, v] of Object.entries(st.palette)) {
+      document.documentElement.style.setProperty(k, v);
+    }
+
+    // Update Swatches
+    const swatches = document.getElementById('palette-swatches');
+    swatches.innerHTML = '';
+    for (const [k, v] of Object.entries(st.palette)) {
+      const div = document.createElement('div');
+      div.className = 'group relative h-10 rounded border border-border overflow-hidden cursor-help';
+      div.style.backgroundColor = v;
+      div.title = `${k}: ${v}`;
+      
+      const label = document.createElement('span');
+      label.className = 'absolute inset-0 flex items-center justify-center text-[8px] opacity-0 group-hover:opacity-100 bg-black/50 text-white truncate px-1';
+      label.textContent = k.replace('--color-', '');
+      
+      div.appendChild(label);
+      swatches.appendChild(div);
+    }
+  }
+
+  // Init
+  const [lat, lon] = coordsForTimezone();
+  const now = new Date();
+  
+  // Set initial values in inputs
+  const dateInput = document.getElementById('palette-date');
+  const tzOffset = now.getTimezoneOffset() * 60000;
+  const localISOTime = new Date(now - tzOffset).toISOString().slice(0, 16);
+  dateInput.value = localISOTime;
+  
+  document.getElementById('palette-lat').value = lat.toFixed(2);
+  document.getElementById('palette-lon').value = lon.toFixed(2);
+
+  // Listeners
+  ['palette-date', 'palette-lat', 'palette-lon', 'palette-mode', 'palette-hue', 'palette-aspects'].forEach(id => {
+    document.getElementById(id).addEventListener('input', update);
+  });
+
+  update();
+</script>

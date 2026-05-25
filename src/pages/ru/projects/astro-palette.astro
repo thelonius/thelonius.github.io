@@ -1,0 +1,51 @@
+---
+import ShowcaseLayout from '../../../layouts/ShowcaseLayout.astro';
+import AstroPaletteDemo from '../../../components/showcase/AstroPaletteDemo.astro';
+import { getCollection } from 'astro:content';
+
+const projects = await getCollection('projects');
+const project = projects.find(p => p.data.slug === 'astro-palette');
+
+if (!project) {
+  return Astro.redirect('/404');
+}
+---
+
+<ShowcaseLayout project={project} lang="ru">
+  <div class="space-y-12">
+    <section>
+      <h2 id="overview">Обзор движка</h2>
+      <p>
+        <strong>Astro Palette</strong> — это математический мост между астрономией и дизайном. 
+        Вместо случайного выбора цветов, движок использует положение небесных тел для генерации 
+        гармоничной OKLCH-палитры, которая меняется в реальном времени.
+      </p>
+      <p>
+        В основе лежат упрощенные алгоритмы эфемерид Meeus для расчета эклиптической долготы планет, 
+        которая затем проецируется на hue текущего планетарного часа.
+      </p>
+    </section>
+
+    <section>
+      <h2 id="interactive">Интерактивный демо-стенд</h2>
+      <p>
+        Поэкспериментируйте с движком ниже. Меняйте дату, координаты или режим расчета, 
+        чтобы увидеть, как меняется палитра. Режим <strong>Geocentric</strong> создает 
+        уникальную палитру каждый день, а <strong>Fixed</strong> следует недельному циклу.
+      </p>
+      <AstroPaletteDemo />
+    </section>
+
+    <section>
+      <h2 id="logic">Логика работы</h2>
+      <p>
+        Палитра строится на трёх столпах:
+      </p>
+      <ul>
+        <li><strong>Планетарные часы:</strong> Определение «Управителя» текущего часа по халдейскому порядку.</li>
+        <li><strong>Пространство OKLCH:</strong> Обеспечивает перцептивную равномерность — яркость и насыщенность остаются стабильными при смене оттенка.</li>
+        <li><strong>Модуляция аспектов:</strong> (Опционально) Усиливает насыщенность или яркость, когда планеты образуют значимые аспекты.</li>
+      </ul>
+    </section>
+  </div>
+</ShowcaseLayout>
