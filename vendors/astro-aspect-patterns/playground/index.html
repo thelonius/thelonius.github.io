@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>astro-aspect-patterns — playground</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0a0e27;
+        --surface: #121732;
+        --surface-2: #1a2247;
+        --border: #2a3556;
+        --text: #e6ecff;
+        --muted: #8a93b8;
+        --accent: #7bd3ea;
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; height: 100%; }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro", Segoe UI, sans-serif;
+        display: grid;
+        grid-template-columns: 340px 1fr;
+        min-height: 100vh;
+      }
+      aside {
+        background: var(--surface);
+        border-right: 1px solid var(--border);
+        padding: 16px;
+        overflow-y: auto;
+        font-size: 13px;
+      }
+      aside h1 { font-size: 14px; margin: 0 0 4px; letter-spacing: 0.04em; }
+      aside .sub { color: var(--muted); margin-bottom: 16px; font-size: 11px; }
+      .group { margin-bottom: 16px; }
+      .group h2 {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+        margin: 0 0 8px;
+      }
+      label { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 8px; align-items: center; }
+      label span:first-child { color: var(--muted); }
+      label span:last-child { color: var(--accent); font-variant-numeric: tabular-nums; font-size: 11px; }
+      input[type="range"] { width: 100%; }
+      .row { display: flex; gap: 6px; flex-wrap: wrap; }
+      button {
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 6px 10px;
+        border-radius: 4px;
+        font-size: 11px;
+        cursor: pointer;
+        font-family: inherit;
+      }
+      button:hover { background: var(--border); }
+      button.active { background: var(--accent); color: #000; border-color: var(--accent); }
+      main {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      .stage {
+        position: relative;
+        width: min(80vh, 80vw);
+        aspect-ratio: 1 / 1;
+        background: #060914;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+      }
+      canvas, svg { display: block; width: 100%; height: 100%; }
+      .footer {
+        position: absolute;
+        bottom: 8px;
+        right: 12px;
+        font-size: 10px;
+        color: var(--muted);
+        font-family: ui-monospace, SF Mono, monospace;
+      }
+      .pattern-opts { display: none; }
+      .pattern-opts.active { display: block; }
+    </style>
+  </head>
+  <body>
+    <aside>
+      <h1>astro-aspect-patterns</h1>
+      <div class="sub">playground</div>
+
+      <div class="group">
+        <h2>Renderer</h2>
+        <div class="row" data-toggle="renderer">
+          <button data-renderer="canvas" class="active">Canvas</button>
+          <button data-renderer="svg">SVG</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <h2>Pattern</h2>
+        <div class="row" data-toggle="pattern">
+          <button data-pattern="aspect-field" class="active">aspect-field</button>
+          <button data-pattern="star-polygon">star-polygon</button>
+          <button data-pattern="flower-of-life">flower-of-life</button>
+          <button data-pattern="tiling">tiling</button>
+          <button data-pattern="harmonograph">harmonograph</button>
+          <button data-pattern="voronoi">voronoi</button>
+          <button data-pattern="composition">composition</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <h2>Input preset</h2>
+        <div class="row" data-toggle="preset">
+          <button data-preset="random" class="active">Random</button>
+          <button data-preset="grand-cross">Grand cross</button>
+          <button data-preset="grand-trine">Grand trine</button>
+          <button data-preset="dense">Dense (10p)</button>
+          <button data-preset="quintile-heavy">Quintile-heavy</button>
+          <button data-preset="today">Today (ephemeris)</button>
+        </div>
+        <div class="row" style="margin-top:6px;">
+          <button id="apply-portfolio-bg">Apply portfolio-bg preset</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <h2>Common</h2>
+        <label><span>Max orb (°)</span><span id="maxOrb-v">8</span></label>
+        <input id="maxOrb" type="range" min="1" max="12" step="0.5" value="8" />
+
+        <label><span>Rotation (°)</span><span id="rotation-v">0</span></label>
+        <input id="rotation" type="range" min="0" max="360" step="1" value="0" />
+
+        <label><span>Seed</span><span id="seed-v">42</span></label>
+        <input id="seed" type="range" min="0" max="999" step="1" value="42" />
+      </div>
+
+      <!-- aspect-field controls -->
+      <div class="group pattern-opts active" data-opts="aspect-field">
+        <h2>aspect-field</h2>
+        <label><span>Ring radius</span><span id="af-ringRadius-v">0.32</span></label>
+        <input id="af-ringRadius" type="range" min="0.10" max="0.45" step="0.01" value="0.32" />
+        <label><span>Chord width</span><span id="af-chordWidth-v">1.6</span></label>
+        <input id="af-chordWidth" type="range" min="0.4" max="6" step="0.1" value="1.6" />
+        <label><span>Halo opacity</span><span id="af-haloOpacity-v">0.18</span></label>
+        <input id="af-haloOpacity" type="range" min="0" max="0.6" step="0.01" value="0.18" />
+        <label><span>Halo radius</span><span id="af-haloRadius-v">0.05</span></label>
+        <input id="af-haloRadius" type="range" min="0.01" max="0.2" step="0.005" value="0.05" />
+        <label><span>Node markers</span><span id="af-nodeMarkers-v">off</span></label>
+        <input id="af-nodeMarkers" type="range" min="0" max="1" step="1" value="0" />
+        <label><span>Node size</span><span id="af-nodeRadius-v">2.5</span></label>
+        <input id="af-nodeRadius" type="range" min="0.5" max="10" step="0.5" value="2.5" />
+        <div style="margin: 8px 0 6px; color: var(--muted); font-size: 11px;">Animation</div>
+        <label><span>Pulsation</span><span id="af-pulsation-v">0</span></label>
+        <input id="af-pulsation" type="range" min="0" max="0.6" step="0.01" value="0" />
+        <label><span>Pulsation freq (Hz)</span><span id="af-pulsationFreq-v">0.15</span></label>
+        <input id="af-pulsationFreq" type="range" min="0.02" max="1" step="0.01" value="0.15" />
+        <label><span>Node breathing (px)</span><span id="af-nodeBreathing-v">0</span></label>
+        <input id="af-nodeBreathing" type="range" min="0" max="10" step="0.5" value="0" />
+        <label><span>Daily rotation</span><span id="af-dailyRotation-v">off</span></label>
+        <input id="af-dailyRotation" type="range" min="0" max="1" step="1" value="0" />
+      </div>
+
+      <!-- star-polygon controls -->
+      <div class="group pattern-opts" data-opts="star-polygon">
+        <h2>star-polygon</h2>
+        <label><span>n (points)</span><span id="sp-n-v">12</span></label>
+        <input id="sp-n" type="range" min="4" max="36" step="1" value="12" />
+        <label><span>Ring radius</span><span id="sp-ringRadius-v">0.36</span></label>
+        <input id="sp-ringRadius" type="range" min="0.10" max="0.45" step="0.01" value="0.36" />
+        <label><span>Chord width</span><span id="sp-chordWidth-v">1.4</span></label>
+        <input id="sp-chordWidth" type="range" min="0.4" max="5" step="0.1" value="1.4" />
+        <label><span>Min strength</span><span id="sp-minStrength-v">0.1</span></label>
+        <input id="sp-minStrength" type="range" min="0" max="1" step="0.01" value="0.1" />
+        <label><span>Show ring</span><span id="sp-showRing-v">off</span></label>
+        <input id="sp-showRing" type="range" min="0" max="1" step="1" value="0" />
+      </div>
+
+      <!-- flower-of-life controls -->
+      <div class="group pattern-opts" data-opts="flower-of-life">
+        <h2>flower-of-life</h2>
+        <label><span>Wheel radius</span><span id="fl-ringRadius-v">0.18</span></label>
+        <input id="fl-ringRadius" type="range" min="0.05" max="0.35" step="0.01" value="0.18" />
+        <label><span>Circle scale</span><span id="fl-circleRadius-v">1.0</span></label>
+        <input id="fl-circleRadius" type="range" min="0.4" max="2.0" step="0.05" value="1.0" />
+        <label><span>Outline opacity</span><span id="fl-outlineOpacity-v">0.45</span></label>
+        <input id="fl-outlineOpacity" type="range" min="0" max="1" step="0.01" value="0.45" />
+        <label><span>Lens opacity</span><span id="fl-lensOpacity-v">0.55</span></label>
+        <input id="fl-lensOpacity" type="range" min="0" max="1" step="0.01" value="0.55" />
+      </div>
+
+      <!-- tiling controls -->
+      <div class="group pattern-opts" data-opts="tiling">
+        <h2>tiling</h2>
+        <label><span>Tile size</span><span id="tl-tileSize-v">20</span></label>
+        <input id="tl-tileSize" type="range" min="6" max="80" step="1" value="20" />
+        <div style="margin: 4px 0 8px;"><span style="color: var(--muted); font-size: 11px;">Shape override</span></div>
+        <div class="row" data-toggle="tl-shape">
+          <button data-shape="auto" class="active">auto</button>
+          <button data-shape="hex">hex</button>
+          <button data-shape="square">square</button>
+          <button data-shape="triangle">triangle</button>
+          <button data-shape="rhombic">rhombic</button>
+        </div>
+        <label style="margin-top:8px"><span>Color mix</span><span id="tl-colorMix-v">0.7</span></label>
+        <input id="tl-colorMix" type="range" min="0" max="1" step="0.01" value="0.7" />
+        <label><span>Vignette</span><span id="tl-vignette-v">0.4</span></label>
+        <input id="tl-vignette" type="range" min="0" max="1" step="0.01" value="0.4" />
+      </div>
+
+      <!-- harmonograph controls -->
+      <div class="group pattern-opts" data-opts="harmonograph">
+        <h2>harmonograph</h2>
+        <label><span>Radius</span><span id="hg-radius-v">0.42</span></label>
+        <input id="hg-radius" type="range" min="0.15" max="0.48" step="0.01" value="0.42" />
+        <label><span>Duration (s)</span><span id="hg-duration-v">28</span></label>
+        <input id="hg-duration" type="range" min="4" max="80" step="1" value="28" />
+        <label><span>Damping</span><span id="hg-damping-v">0.05</span></label>
+        <input id="hg-damping" type="range" min="0" max="0.3" step="0.005" value="0.05" />
+        <label><span>Stroke width</span><span id="hg-strokeWidth-v">0.8</span></label>
+        <input id="hg-strokeWidth" type="range" min="0.2" max="3" step="0.1" value="0.8" />
+        <label><span>Phase</span><span id="hg-phase-v">0</span></label>
+        <input id="hg-phase" type="range" min="0" max="6.28" step="0.01" value="0" />
+      </div>
+
+      <!-- composition controls -->
+      <div class="group pattern-opts" data-opts="composition">
+        <h2>composition</h2>
+        <label><span>Outer scale</span><span id="co-outerScale-v">0.85</span></label>
+        <input id="co-outerScale" type="range" min="0.40" max="0.98" step="0.01" value="0.85" />
+        <label><span>Inner scale</span><span id="co-innerScale-v">0.34</span></label>
+        <input id="co-innerScale" type="range" min="0.15" max="0.55" step="0.01" value="0.34" />
+        <label><span>Line width</span><span id="co-lineWidth-v">0.9</span></label>
+        <input id="co-lineWidth" type="range" min="0.2" max="3" step="0.1" value="0.9" />
+        <label><span>Image (kaleidoscope)</span></label>
+        <input id="co-image-file" type="file" accept="image/*" style="font-size:11px; width:100%;" />
+        <div class="row" style="margin-top:6px;">
+          <button id="co-clear-image">Clear image</button>
+          <button id="co-shuffle-rotations">Shuffle rotations</button>
+          <button id="co-shuffle-geometric">Geometric shuffle</button>
+        </div>
+        <label style="margin-top:8px"><span>Fill inner regions</span><span id="co-fillInner-v">on</span></label>
+        <input id="co-fillInner" type="range" min="0" max="1" step="1" value="1" />
+        <label><span>Atmosphere</span><span id="co-atmosphere-v">peach-blue</span></label>
+        <div class="row" data-toggle="co-atmosphere">
+          <button data-atmo="peach-blue" class="active">peach-blue</button>
+          <button data-atmo="dawn">dawn</button>
+          <button data-atmo="dusk">dusk</button>
+          <button data-atmo="night">night</button>
+          <button data-atmo="forest">forest</button>
+          <button data-atmo="none">none</button>
+        </div>
+        <label style="margin-top:8px"><span>Horizon line</span><span id="co-showHorizon-v">on</span></label>
+        <input id="co-showHorizon" type="range" min="0" max="1" step="1" value="1" />
+        <label><span>Vertical line</span><span id="co-showVertical-v">off</span></label>
+        <input id="co-showVertical" type="range" min="0" max="1" step="1" value="0" />
+        <label><span>Alt. tints</span><span id="co-alternateTints-v">off</span></label>
+        <input id="co-alternateTints" type="range" min="0" max="1" step="1" value="0" />
+        <label><span>Tint strength</span><span id="co-tintStrength-v">0.12</span></label>
+        <input id="co-tintStrength" type="range" min="0" max="0.5" step="0.01" value="0.12" />
+      </div>
+
+      <!-- voronoi controls -->
+      <div class="group pattern-opts" data-opts="voronoi">
+        <h2>voronoi</h2>
+        <label><span>Ring radius</span><span id="vr-ringRadius-v">0.32</span></label>
+        <input id="vr-ringRadius" type="range" min="0.05" max="0.45" step="0.01" value="0.32" />
+        <label><span>Padding</span><span id="vr-padding-v">0</span></label>
+        <input id="vr-padding" type="range" min="0" max="80" step="1" value="0" />
+        <label><span>Color mix</span><span id="vr-colorMix-v">0.7</span></label>
+        <input id="vr-colorMix" type="range" min="0" max="1" step="0.01" value="0.7" />
+        <label><span>Vignette</span><span id="vr-vignette-v">0.35</span></label>
+        <input id="vr-vignette" type="range" min="0" max="1" step="0.01" value="0.35" />
+      </div>
+
+      <div class="group">
+        <h2>Export</h2>
+        <div class="row">
+          <button id="copy-svg">Copy SVG</button>
+          <button id="download-png">Download PNG</button>
+        </div>
+      </div>
+    </aside>
+
+    <main>
+      <div class="stage" id="stage">
+        <canvas id="canvas"></canvas>
+        <div class="footer" id="status"></div>
+      </div>
+    </main>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

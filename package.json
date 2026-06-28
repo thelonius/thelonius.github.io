@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "astro": "^6.2.1",
-    "astro-aspect-patterns": "file:../adaptive-astro-scheduler/packages/aspect-patterns",
+    "astro-aspect-patterns": "file:vendors/astro-aspect-patterns",
     "astro-mermaid": "^2.0.1",
     "astro-og-canvas": "^0.11.1",
     "astro-palette": "github:thelonius/astro-palette",
