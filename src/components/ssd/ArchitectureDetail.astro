@@ -1,0 +1,51 @@
+---
+// src/components/ssd/ArchitectureDetail.astro
+// Technical explanation of the NL-to-SQL pipeline.
+---
+
+<div class="space-y-8">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="p-4 border border-border rounded bg-bg">
+            <div class="text-accent font-bold mb-2">1. Semantic Mapping</div>
+            <p class="text-xs text-text-muted">User queries are processed through an embedding layer. "Pollock" is mapped to the canonical term "минтай" using cosine similarity in a vector space.</p>
+        </div>
+        <div class="p-4 border border-border rounded bg-bg">
+            <div class="text-accent font-bold mb-2">2. Contextual Prompting</div>
+            <p class="text-xs text-text-muted">The LLM receives a detailed schema context (SCD) including table definitions and business rules (e.g., "Don't sum onboard totals").</p>
+        </div>
+        <div class="p-4 border border-border rounded bg-bg">
+            <div class="text-accent font-bold mb-2">3. Safe Execution</div>
+            <p class="text-xs text-text-muted">Generated SQL is wrapped in a read-only subquery with a hard LIMIT to prevent resource exhaustion and ensure security.</p>
+        </div>
+    </div>
+
+    <div class="bg-bg border border-border rounded-lg p-6">
+        <h3 class="text-lg font-semibold mb-4 text-accent">The Prompt Engine</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-4">
+                <p class="text-sm text-text-muted">The system uses a strictly constrained system prompt to ensure the LLM acts as a pure SQL translator without "conversational noise".</p>
+                <pre class="bg-surface p-3 rounded text-[10px] font-mono text-text-muted border border-border overflow-x-auto">
+_SYSTEM = """
+Ты аналитик данных рыбопромышленной отрасли.
+Переводи вопрос пользователя в SQL-запрос для DuckDB.
+
+Правила:
+- Только SELECT или WITH ... SELECT.
+- Ответь ТОЛЬКО SQL — без markdown, пояснений.
+- Если невозможно — ответь: НЕВОЗМОЖНО: &lt;причина&gt;
+"""
+                </pre>
+            </div>
+            <div class="space-y-4">
+                <p class="text-sm text-text-muted">Schema context is provided dynamically, enabling the LLM to understand the difference between daily "catch" and static "onboard" totals.</p>
+                <pre class="bg-surface p-3 rounded text-[10px] font-mono text-text-muted border border-border overflow-x-auto">
+### catch — дневной вылов
+  file_date TEXT, vessel TEXT, zone TEXT, 
+  species_canon TEXT, qty_t DOUBLE
+⚠ qty_t — суточный поток; SUM(qty_t) 
+за период = суммарный вылов.
+                </pre>
+            </div>
+        </div>
+    </div>
+</div>

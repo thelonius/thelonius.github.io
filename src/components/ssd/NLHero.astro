@@ -1,0 +1,169 @@
+---
+// src/components/ssd/NLHero.astro
+// Interactive NL-to-SQL simulator.
+// Shows: Query -> SQL -> Result.
+
+export interface SSDQuery {
+  id: string;
+  query: { en: string; ru: string };
+  sql: string;
+  answer: { en: string; ru: string };
+  visualization: 'stat_card' | 'list' | 'summary_table';
+  value: any;
+}
+
+export interface Props {
+  queries: SSDQuery[];
+  lang: 'en' | 'ru';
+}
+
+const { queries, lang } = Astro.props;
+---
+
+<div class="border border-border rounded-lg bg-surface overflow-hidden font-mono">
+  <!-- Top Bar -->
+  <div class="border-b border-border bg-bg px-4 py-2 flex items-center justify-between text-xs text-text-muted">
+    <div class="flex items-center gap-2">
+      <div class="w-3 h-3 rounded-full bg-red-500/50"></div>
+      <div class="w-3 h-3 rounded-full bg-yellow-500/50"></div>
+      <div class="w-3 h-3 rounded-full bg-green-500/50"></div>
+      <span class="ml-2 opacity-70">ssd-analytica-shell — bash</span>
+    </div>
+    <span>UTF-8</span>
+  </div>
+
+  <div class="p-4 flex flex-col gap-6">
+    <!-- Query Selector -->
+    <div class="flex flex-wrap gap-2">
+      {queries.map((q, i) => (
+        <button
+          class={`nl-query-chip text-xs px-3 py-1.5 rounded border transition-all
+                  ${i === 0 ? 'bg-accent/20 border-accent text-accent' : 'bg-bg border-border text-text-muted hover:border-text-muted'}`}
+          data-qid={q.id}
+        >
+          {q.query[lang]}
+        </button>
+      ))}
+    </div>
+
+    <!-- Simulation Area -->
+    <div class="space-y-4">
+      <!-- Input Line -->
+      <div class="flex gap-3 text-sm">
+        <span class="text-accent">❯</span>
+        <span class="nl-current-query">{queries[0].query[lang]}</span>
+      </div>
+
+      <!-- Thinking/Processing -->
+      <div class="nl-processing hidden flex items-center gap-2 text-xs text-text-muted italic">
+        <span class="animate-pulse">⚙️ {lang === 'en' ? 'Generating SQL via LLM...' : 'Генерация SQL через LLM...'}</span>
+      </div>
+
+      <!-- SQL Block -->
+      <div class="nl-sql-block bg-bg border border-border rounded p-3 text-xs leading-relaxed overflow-x-auto">
+        <div class="text-text-muted mb-2 opacity-50">{lang === 'en' ? 'Generated SQL:' : 'Сгенерированный SQL:'}</div>
+        <code class="text-accent">{queries[0].sql}</code>
+      </div>
+
+      <!-- Result Block -->
+      <div class="nl-result-block border-l-2 border-accent pl-4 py-1">
+        <div class="text-xs text-text-muted mb-1">{lang === 'en' ? 'System Answer:' : 'Ответ системы:'}</div>
+        <div class="text-sm text-text font-medium">{queries[0].answer[lang]}</div>
+        
+        <!-- Dynamic Visualization -->
+        <div class="mt-4 nl-viz-container">
+          <!-- Default value for first query -->
+          {queries[0].visualization === 'stat_card' && (
+             <div class="text-3xl font-bold text-accent">{queries[0].value}</div>
+          )}
+          {queries[0].visualization === 'list' && (
+             <ul class="list-disc list-inside text-sm text-text-muted">
+                {queries[0].value[lang].map((v: string) => <li>{v}</li>)}
+             </ul>
+          )}
+          {queries[0].visualization === 'summary_table' && (
+             <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+                {Object.entries(queries[0].value[lang]).map(([k, v]) => (
+                    <div class="flex justify-between border-b border-border pb-1">
+                        <span class="text-text-muted">{k}:</span>
+                        <span class="text-text">{v}</span>
+                    </div>
+                ))}
+             </div>
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script is:inline define:vars={{ queries, lang }}>
+  (function () {
+    const queriesData = queries;
+    const currentLang = lang;
+
+    const chips = document.querySelectorAll('.nl-query-chip');
+    const currentQuery = document.querySelector('.nl-current-query');
+    const sqlBlock = document.querySelector('.nl-sql-block code');
+    const resultText = document.querySelector('.nl-result-block .text-sm');
+    const processing = document.querySelector('.nl-processing');
+    const vizContainer = document.querySelector('.nl-viz-container');
+
+    chips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const qid = chip.getAttribute('data-qid');
+        const qText = chip.innerText;
+        const info = queriesData.find(q => q.id === qid);
+
+        // UI reset
+        chips.forEach(c => {
+            c.classList.remove('bg-accent/20', 'border-accent', 'text-accent');
+            c.classList.add('bg-bg', 'border-border', 'text-text-muted');
+        });
+        chip.classList.remove('bg-bg', 'border-border', 'text-text-muted');
+        chip.classList.add('bg-accent/20', 'border-accent', 'text-accent');
+
+        currentQuery.innerText = qText;
+        sqlBlock.classList.add('opacity-0');
+        resultText.classList.add('opacity-0');
+        vizContainer.classList.add('opacity-0');
+        processing.classList.remove('hidden');
+
+        setTimeout(() => {
+            processing.classList.add('hidden');
+            sqlBlock.innerText = info.sql;
+            sqlBlock.classList.remove('opacity-0');
+            
+            setTimeout(() => {
+                resultText.innerText = info.answer[currentLang];
+                resultText.classList.remove('opacity-0');
+                
+                // Handle Visualization
+                let vizHtml = '';
+                if (info.visualization === 'stat_card') {
+                    vizHtml = `<div class="text-3xl font-bold text-accent">${info.value}</div>`;
+                } else if (info.visualization === 'list') {
+                    vizHtml = `<ul class="list-disc list-inside text-sm text-text-muted">` + 
+                               info.value[currentLang].map(v => `<li>${v}</li>`).join('') + 
+                               `</ul>`;
+                } else if (info.visualization === 'summary_table') {
+                    vizHtml = `<div class="grid grid-cols-2 gap-2 text-xs font-mono">` + 
+                               Object.entries(info.value[currentLang]).map(([k, v]) => 
+                                `<div class="flex justify-between border-b border-border pb-1">
+                                    <span class="text-text-muted">${k}:</span>
+                                    <span class="text-text">${v}</span>
+                                </div>`).join('') + 
+                                `</div>`;
+                }
+                vizContainer.innerHTML = vizHtml;
+                vizContainer.classList.remove('opacity-0');
+            }, 400);
+        }, 600);
+      });
+    });
+  })();
+</script>
+
+<style>
+  .opacity-0 { opacity: 0; transition: opacity 0.3s ease; }
+</style>

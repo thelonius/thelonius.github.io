@@ -1,0 +1,203 @@
+---
+// src/pages/ru/projects/ssd.astro
+// Business-oriented rich-showcase page for SSD Catch Analytics (RU).
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Sidebar from '../../../components/Sidebar.astro';
+import StatusTag from '../../../components/StatusTag.astro';
+import StackList from '../../../components/StackList.astro';
+import LinksList from '../../../components/LinksList.astro';
+import MetricsTable from '../../../components/MetricsTable.astro';
+import NLHero from '../../../components/ssd/NLHero.astro';
+import VisualShowcase from '../../../components/ssd/VisualShowcase.astro';
+import ArchitectureDetail from '../../../components/ssd/ArchitectureDetail.astro';
+import SSDDataDeepDive from '../../../components/ssd/SSDDataDeepDive.astro';
+
+const projects = await getCollection('projects');
+const project = projects.find((p) => p.data.slug === 'ssd')!;
+
+import queriesData from '../../../content/ssd-data/queries.json';
+import metricsData from '../../../content/ssd-data/metrics.json';
+
+const lang = 'ru'; 
+
+const sections = [
+  { id: 'outcomes',      label: 'Бизнес-результаты' },
+  { id: 'case',          label: 'Бизнес-кейс' },
+  { id: 'trust',         label: 'Надежность и Доверие' },
+  { id: 'proof',         label: 'Интерактивное демо' },
+  { id: 'stack',         label: 'Стек и ссылки' },
+];
+---
+
+<BaseLayout
+  title={`${project.data.title} — Ed Dubnitsky`}
+  description={project.data.description}
+  ogImagePath={project.data.slug}
+  lang={lang}
+>
+  <header class="sticky top-0 z-10 bg-bg/90 backdrop-blur border-b border-border">
+    <div class="max-w-5xl mx-auto px-6 py-3 flex items-baseline justify-between">
+      <a href="/ru" class="text-text-muted hover:text-accent text-sm">← назад · {project.data.title}</a>
+      <StatusTag status={project.data.status} year={project.data.year} />
+    </div>
+  </header>
+
+  <div class="max-w-5xl mx-auto px-6 pt-6">
+    <h1 class="text-3xl font-semibold">{project.data.title}</h1>
+    <p class="text-text-muted mt-2">{project.data.tagline}</p>
+    <p class="text-text-muted text-sm mt-1 font-mono">{project.data.period}</p>
+  </div>
+
+  <div class="max-w-5xl mx-auto px-6 pt-12 pb-16 flex gap-8">
+    <Sidebar sections={sections} />
+    <article class="flex-1 min-w-0 prose prose-invert max-w-none
+                    prose-headings:scroll-mt-20
+                    prose-h2:text-accent prose-h2:font-semibold prose-h2:text-xl
+                    prose-h2:mt-12 prose-h2:mb-4
+                    prose-p:text-text prose-strong:text-text">
+
+      <!-- Section 1: Strategic Outcomes -->
+      <section id="outcomes">
+        <h2>Бизнес-результаты</h2>
+        <p>Платформа превращает разрозненные данные в высокоскоростную бизнес-аналитику, фокусируясь на трех ключевых операционных столпах:</p>
+        
+        <div class="space-y-12 mt-8">
+            <!-- Pillar 1: Production Intelligence -->
+            <div class="group">
+                <h3 class="text-lg font-semibold flex items-center gap-2 text-accent">
+                    <span class="w-6 h-6 rounded bg-accent/20 text-accent flex items-center justify-center text-xs font-bold">01</span>
+                    Разведка производства
+                </h3>
+                <p class="text-text-muted text-sm mb-6">Устранение ручного сбора отчетов для мгновенного определения пиков вылова и видового состава.</p>
+                <VisualShowcase 
+                    screenshots={[
+                        {
+                            src: '/assets/ssd/ssd-2.png',
+                            title: 'Динамика вылова',
+                            description: 'Отслеживание тонн по видам в реальном времени для оптимизации загрузки перерабатывающих заводов.',
+                            caption: 'Анализ трендов производства'
+                        },
+                        {
+                            src: '/assets/ssd/ssd-6.png',
+                            title: 'Иерархия продукции',
+                            description: 'Мгновенный разбор состава продукции: Вид $\rightarrow$ Категория $\rightarrow$ Способ обработки.',
+                            caption: 'Прозрачность цепочки создания стоимости'
+                        }
+                    ]}
+                />
+            </div>
+
+            <!-- Pillar 2: Fleet Command -->
+            <div class="group">
+                <h3 class="text-lg font-semibold flex items-center gap-2 text-accent">
+                    <span class="w-6 h-6 rounded bg-accent/20 text-accent flex items-center justify-center text-xs font-bold">02</span>
+                    Управление флотом
+                </h3>
+                <p class="text-text-muted text-sm mb-6">Полная ситуационная осведомленность о состоянии судов, сокращение «слепых зон» и простоев.</p>
+                <VisualShowcase 
+                    screenshots={[
+                        {
+                            src: '/assets/ssd/ssd-5.png',
+                            title: 'Карта положения флота',
+                            description: 'Гео-мониторинг всех единиц с мгновенной фильтрацией по операционному статусу.',
+                            caption: 'Ситуационная осведомленность в реальном времени'
+                        },
+                        {
+                            src: '/assets/ssd/ssd-3.png',
+                            title: 'Динамика состояний',
+                            description: 'Анализ циклов мобилизации для прогнозирования готовности флота.',
+                            caption: 'Планирование мощностей'
+                        }
+                    ]}
+                />
+            </div>
+
+            <!-- Pillar 3: Logistics Optimization -->
+            <div class="group">
+                <h3 class="text-lg font-semibold flex items-center gap-2 text-accent">
+                    <span class="w-6 h-6 rounded bg-accent/20 text-accent flex items-center justify-center text-xs font-bold">03</span>
+                    Оптимизация логистики
+                </h3>
+                <p class="text-text-muted text-sm mb-6">Прогнозирование приходов в порты и распределения тоннажа для оптимизации береговых терминалов.</p>
+                <VisualShowcase 
+                    screenshots={[
+                        {
+                            src: '/assets/ssd/ssd-1.png',
+                            title: 'Анализ портов назначения',
+                            description: 'Стратегическое распределение тонн по целевым портам для снижения логистических издержек.',
+                            caption: 'Оптимизация экспортных потоков'
+                        },
+                        {
+                            src: '/assets/ssd/ssd-4.png',
+                            title: 'Аудит приемки грузов',
+                            description: 'Автоматизированная сверка приемки в море для обеспечения целостности данных.',
+                            caption: 'Контроль операционной эффективности'
+                        }
+                    ]}
+                />
+            </div>
+        </div>
+      </section>
+
+      <!-- Section 2: The Business Case -->
+      <section id="case">
+        <h2>Бизнес-кейс</h2>
+        <p>Традиционная отчетность рыболовного флота — это «бутылочное горлышко». Данные заперты в ручных формах (ССД 2.1-2.6) и разрозненных таблицах. Для руководителя ответ на простой стратегический вопрос часто требует многочасового аудита нескольких источников.</p>
+        <p><strong>SSD Catch Analytics</strong> заменяет этот процесс <strong>семантическим слоем интеллекта</strong>. Перевод бизнес-вопросов напрямую в SQL-запросы сокращает время получения инсайта с часов до миллисекунд, позволяя гибко реагировать на рыночные и природные изменения.</p>
+      </section>
+
+      <!-- Section 3: Reliability & Trust -->
+      <section id="trust">
+        <h2>Надежность и Доверие</h2>
+        <p>В продакшн-среде галлюцинации ИИ недопустимы. Система спроектирована как <strong>детерминированный конвейер</strong>: LLM отвечает только за генерацию запроса, а сами данные всегда извлекаются из первоисточника с жесткими границами read-only.</p>
+        <pre class="mermaid">
+graph LR
+  user[Бизнес-вопрос] --> llm[LLM Транслятор]
+  llm --> sql[Строгий SQL]
+  sql --> guard[Защитный слой]
+  guard --> db[(Хранилище данных)]
+  db --> res[Верифицированные данные]
+  res --> vis[Бизнес-дашборд]
+        </pre>
+        <ArchitectureDetail />
+        <SSDDataDeepDive />
+      </section>
+
+      <!-- Section 4: Interactive Proof -->
+      <section id="proof" class="not-prose mb-12">
+        <NLHero queries={queriesData} lang={lang} />
+        <div class="mt-8">
+            <VisualShowcase 
+                screenshots={[
+                    {
+                        src: '/assets/ssd/ssd-7.png',
+                        title: 'Интерфейс семантических запросов',
+                        description: 'Интерфейс с нулевым порогом входа, позволяющий менеджерам извлекать точные данные без помощи аналитиков.',
+                        caption: 'Демократизация доступа к данным'
+                    }
+                ]}
+            />
+        </div>
+      </section>
+
+      <!-- Section 5: Stack & links -->
+      <section id="stack" class="not-prose mt-12">
+        <h2 class="text-accent font-semibold text-xl mb-4">Стек</h2>
+        <StackList stack={project.data.stack} />
+
+        <h2 class="text-accent font-semibold text-xl mt-12 mb-4">Метрики системы</h2>
+        <MetricsTable 
+            metrics={[
+                ...Object.entries(metricsData.performance).map(([k, v]) => ({ label: k, value: v })),
+                ...Object.entries(metricsData.scale).map(([k, v]) => ({ label: k, value: v }))
+            ]} 
+        />
+
+        <h2 class="text-accent font-semibold text-xl mt-12 mb-4">Ссылки</h2>
+        <LinksList links={project.data.links} />
+      </section>
+    </article>
+  </div>
+</BaseLayout>
+---

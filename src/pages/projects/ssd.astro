@@ -1,0 +1,202 @@
+---
+// src/pages/projects/ssd.astro
+// Business-oriented rich-showcase page for SSD Catch Analytics.
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Sidebar from '../../components/Sidebar.astro';
+import StatusTag from '../../components/StatusTag.astro';
+import StackList from '../../components/StackList.astro';
+import LinksList from '../../components/LinksList.astro';
+import MetricsTable from '../../components/MetricsTable.astro';
+import NLHero from '../../components/ssd/NLHero.astro';
+import VisualShowcase from '../../components/ssd/VisualShowcase.astro';
+import ArchitectureDetail from '../../components/ssd/ArchitectureDetail.astro';
+import SSDDataDeepDive from '../../components/ssd/SSDDataDeepDive.astro';
+
+const projects = await getCollection('projects');
+const project = projects.find((p) => p.data.slug === 'ssd')!;
+
+import queriesData from '../../content/ssd-data/queries.json';
+import metricsData from '../../content/ssd-data/metrics.json';
+
+const lang = 'en'; 
+
+const sections = [
+  { id: 'outcomes',      label: 'Business Outcomes' },
+  { id: 'case',          label: 'The Business Case' },
+  { id: 'trust',         label: 'Reliability & Trust' },
+  { id: 'proof',         label: 'Interactive Proof' },
+  { id: 'stack',         label: 'Stack & Links' },
+];
+---
+
+<BaseLayout
+  title={`${project.data.title} — Ed Dubnitsky`}
+  description={project.data.description}
+  ogImagePath={project.data.slug}
+>
+  <header class="sticky top-0 z-10 bg-bg/90 backdrop-blur border-b border-border">
+    <div class="max-w-5xl mx-auto px-6 py-3 flex items-baseline justify-between">
+      <a href="/" class="text-text-muted hover:text-accent text-sm">← back · {project.data.title}</a>
+      <StatusTag status={project.data.status} year={project.data.year} />
+    </div>
+  </header>
+
+  <div class="max-w-5xl mx-auto px-6 pt-6">
+    <h1 class="text-3xl font-semibold">{project.data.title}</h1>
+    <p class="text-text-muted mt-2">{project.data.tagline}</p>
+    <p class="text-text-muted text-sm mt-1 font-mono">{project.data.period}</p>
+  </div>
+
+  <div class="max-w-5xl mx-auto px-6 pt-12 pb-16 flex gap-8">
+    <Sidebar sections={sections} />
+    <article class="flex-1 min-w-0 prose prose-invert max-w-none
+                    prose-headings:scroll-mt-20
+                    prose-h2:text-accent prose-h2:font-semibold prose-h2:text-xl
+                    prose-h2:mt-12 prose-h2:mb-4
+                    prose-p:text-text prose-strong:text-text">
+
+      <!-- Section 1: Strategic Outcomes -->
+      <section id="outcomes">
+        <h2>Strategic Outcomes</h2>
+        <p>The platform converts fragmented data into high-velocity business intelligence, focusing on three core operational pillars:</p>
+        
+        <div class="space-y-12 mt-8">
+            <!-- Pillar 1: Production Intelligence -->
+            <div class="group">
+                <h3 class="text-lg font-semibold flex items-center gap-2 text-accent">
+                    <span class="w-6 h-6 rounded bg-accent/20 text-accent flex items-center justify-center text-xs font-bold">01</span>
+                    Production Intelligence
+                </h3>
+                <p class="text-text-muted text-sm mb-6">Eliminating manual report aggregation to identify catch peaks and species distribution in seconds, not hours.</p>
+                <VisualShowcase 
+                    screenshots={[
+                        {
+                            src: '/assets/ssd/ssd-2.png',
+                            title: 'Catch Dynamics',
+                            description: 'Real-time tracking of species tonnage to optimize processing plant capacity.',
+                            caption: 'Production trend analysis'
+                        },
+                        {
+                            src: '/assets/ssd/ssd-6.png',
+                            title: 'Hierarchical Product Breakdown',
+                            description: 'Instant visibility into product categories and processing methods.',
+                            caption: 'Value-chain transparency'
+                        }
+                    ]}
+                />
+            </div>
+
+            <!-- Pillar 2: Fleet Command -->
+            <div class="group">
+                <h3 class="text-lg font-semibold flex items-center gap-2 text-accent">
+                    <span class="w-6 h-6 rounded bg-accent/20 text-accent flex items-center justify-center text-xs font-bold">02</span>
+                    Fleet Command
+                </h3>
+                <p class="text-text-muted text-sm mb-6">Total situational awareness of vessel status, reducing operational blind spots and idling time.</p>
+                <VisualShowcase 
+                    screenshots={[
+                        {
+                            src: '/assets/ssd/ssd-5.png',
+                            title: 'Real-time Fleet Map',
+                            description: 'Geospatial monitoring of all units with instant status filtering.',
+                            caption: 'Operational situational awareness'
+                        },
+                        {
+                            src: '/assets/ssd/ssd-3.png',
+                            title: 'Fleet State Dynamics',
+                            description: 'Analyzing mobilization cycles to predict fleet readiness.',
+                            caption: 'Capacity planning'
+                        }
+                    ]}
+                />
+            </div>
+
+            <!-- Pillar 3: Logistics Optimization -->
+            <div class="group">
+                <h3 class="text-lg font-semibold flex items-center gap-2 text-accent">
+                    <span class="w-6 h-6 rounded bg-accent/20 text-accent flex items-center justify-center text-xs font-bold">03</span>
+                    Logistics Optimization
+                </h3>
+                <p class="text-text-muted text-sm mb-6">Predictive port arrival and tonnage forecasting to streamline shoreside logistics and export flows.</p>
+                <VisualShowcase 
+                    screenshots={[
+                        {
+                            src: '/assets/ssd/ssd-1.png',
+                            title: 'Port Destination Analysis',
+                            description: 'Strategic distribution of tonnage by target ports to optimize logistics costs.',
+                            caption: 'Export flow optimization'
+                        },
+                        {
+                            src: '/assets/ssd/ssd-4.png',
+                            title: 'Vessel Acceptance Audit',
+                            description: 'Automated verification of catch acceptance at sea to ensure data integrity.',
+                            caption: 'Operational audit trail'
+                        }
+                    ]}
+                />
+            </div>
+        </div>
+      </section>
+
+      <!-- Section 2: The Business Case -->
+      <section id="case">
+        <h2>The Business Case</h2>
+        <p>Traditional fishing fleet reporting is a bottleneck. Data is trapped in manual forms (SCD 2.1-2.6) and fragmented spreadsheets. For an executive, answering a simple strategic question often requires a manual audit of multiple data sources.</p>
+        <p><strong>SSD Catch Analytics</strong> replaces this friction with a <strong>semantic intelligence layer</strong>. By translating business questions directly into database queries, we reduce the Time-to-Insight from hours to milliseconds, enabling agile response to market and environmental changes.</p>
+      </section>
+
+      <!-- Section 3: Reliability & Trust -->
+      <section id="trust">
+        <h2>Reliability & Trust</h2>
+        <p>In a production environment, AI hallucinations are unacceptable. The system is designed as a <strong>deterministic pipeline</strong>: the LLM only generates the query; the data itself is always fetched from the source of truth with strict read-only boundaries.</p>
+        <pre class="mermaid">
+graph LR
+  user[Business Question] --> llm[LLM Translator]
+  llm --> sql[Strict SQL]
+  sql --> guard[Security Guard]
+  guard --> db[(Truth Store)]
+  db --> res[Verified Data]
+  res --> vis[Business Dashboard]
+        </pre>
+        <ArchitectureDetail />
+        <SSDDataDeepDive />
+      </section>
+
+      <!-- Section 4: Interactive Proof -->
+      <section id="proof" class="not-prose mb-12">
+        <NLHero queries={queriesData} lang={lang} />
+        <div class="mt-8">
+            <VisualShowcase 
+                screenshots={[
+                    {
+                        src: '/assets/ssd/ssd-7.png',
+                        title: 'Executive Query Interface',
+                        description: 'A zero-training interface that empowers non-technical managers to extract precise data without analyst intervention.',
+                        caption: 'Democratizing data access'
+                    }
+                ]}
+            />
+        </div>
+      </section>
+
+      <!-- Section 5: Stack & links -->
+      <section id="stack" class="not-prose mt-12">
+        <h2 class="text-accent font-semibold text-xl mb-4">Stack</h2>
+        <StackList stack={project.data.stack} />
+
+        <h2 class="text-accent font-semibold text-xl mt-12 mb-4">System Metrics</h2>
+        <MetricsTable 
+            metrics={[
+                ...Object.entries(metricsData.performance).map(([k, v]) => ({ label: k, value: v })),
+                ...Object.entries(metricsData.scale).map(([k, v]) => ({ label: k, value: v }))
+            ]} 
+        />
+
+        <h2 class="text-accent font-semibold text-xl mt-12 mb-4">Links</h2>
+        <LinksList links={project.data.links} />
+      </section>
+    </article>
+  </div>
+</BaseLayout>
+---

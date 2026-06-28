@@ -1,0 +1,75 @@
+---
+// src/components/ssd/SSDDataDeepDive.astro
+// detailed data tables and diagrams for the SSD catch project.
+---
+
+<div class="space-y-12">
+    <!-- Diagram 1: The Data Journey -->
+    <div class="space-y-4">
+        <h3 class="text-lg font-semibold text-accent">Data Lifecycle: Ship to Port</h3>
+        <pre class="mermaid">
+graph TD
+  S["Ship: Vessel/Captain"] -->|Daily SCD Form| API[SSD Ingest API]
+  API -->|Normalization| DB[(DuckDB Storage)]
+  DB -->|Aggregation| ANALYST[Analyst/Management]
+  DB -->|LLM Context| NLSQL[NL-to-SQL Interface]
+  
+  API -.->|Validation| ERR[Error Reporting]
+  S -.->|AIS Coordinates| GEO[Geo-Processing Layer]
+  GEO --> DB
+        </pre>
+        <p class="text-sm text-text-muted">The system handles the full pipeline from raw daily reports to semantic queries, including AIS-based geospatial enrichment.</p>
+    </div>
+
+    <!-- Table: Data Model Comparison -->
+    <div class="space-y-4">
+        <h3 class="text-lg font-semibold text-accent">Data Model: Catch vs Onboard</h3>
+        <div class="overflow-x-auto border border-border rounded-lg">
+            <table class="w-full text-sm font-mono text-left">
+                <thead class="bg-bg border-b border-border text-text-muted">
+                    <tr>
+                        <th class="p-3">Feature</th>
+                        <th class="p-3">Daily Catch (SCD 2.1)</th>
+                        <th class="p-3">Onboard Inventory (SCD 2.6)</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-border">
+                    <tr>
+                        <td class="p-3 font-bold">Nature</td>
+                        <td class="p-3">Flow (Incremental)</td>
+                        <td class="p-3">Snapshot (Current State)</td>
+                    </tr>
+                    <tr>
+                        <td class="p-3 font-bold">Aggregation</td>
+                        <td class="p-3">SUM over period</td>
+                        <td class="p-3">Last known value</td>
+                    </tr>
+                    <tr>
+                        <td class="p-3 font-bold">Key Metric</td>
+                        <td class="p-3">qty_t (daily tons)</td>
+                        <td class="p-3">onboard_t (total tons)</td>
+                    </tr>
+                    <tr>
+                        <td class="p-3 font-bold">Purpose</td>
+                        <td class="p-3">Production Efficiency</td>
+                        <td class="p-3">Logistics & Planning</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Diagram 2: The LLM-SQL Bridge -->
+    <div class="space-y-4">
+        <h3 class="text-lg font-semibold text-accent">Semantic Mapping Layer</h3>
+        <pre class="mermaid">
+graph LR
+  U["User: 'Pollock'"] --> EMB[Embedding Vector]
+  EMB --> SIM[Cosine Similarity]
+  SIM --> CAN["Canonical Term: 'минтай'"]
+  CAN --> SQL[SQL Generator]
+  SQL --> DB[(DuckDB)]
+        </pre>
+        <p class="text-sm text-text-muted">Semantic search ensures that variations in naming (English/Russian/Abbreviations) always resolve to the correct database entity.</p>
+    </div>
+</div>

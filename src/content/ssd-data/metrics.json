@@ -1,0 +1,12 @@
+{
+  "performance": {
+    "nl_to_sql_latency": "1.2s",
+    "semantic_search_ms": "45ms",
+    "max_concurrent_queries": "50"
+  },
+  "scale": {
+    "vessels_monitored": "120+",
+    "daily_events": "10k+",
+    "species_supported": "25+"
+  }
+}

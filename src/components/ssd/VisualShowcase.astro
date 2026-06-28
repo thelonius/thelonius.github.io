@@ -1,0 +1,41 @@
+---
+// src/components/ssd/VisualShowcase.astro
+// Component to display real screenshots of the SSD platform with annotations.
+interface Screenshot {
+  src: string;
+  title: string;
+  description: string;
+  caption?: string;
+}
+
+interface Props {
+  screenshots: Screenshot[];
+}
+
+const { screenshots } = Astro.props;
+---
+
+<div class="grid grid-cols-1 gap-12">
+  {screenshots.map((s) => (
+    <figure class="group relative bg-surface border border-border rounded-xl overflow-hidden shadow-lg transition-transform hover:scale-[1.01]">
+      <div class="p-4 border-b border-border bg-bg flex justify-between items-center">
+        <h4 class="text-sm font-semibold text-accent font-mono">{s.title}</h4>
+      </div>
+      
+      <div class="relative overflow-hidden bg-bg">
+        <img 
+          src={s.src} 
+          alt={s.title} 
+          class="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+      </div>
+
+      <figcaption class="p-4 bg-surface border-t border-border">
+        <p class="text-xs text-text-muted leading-relaxed">
+          {s.description}
+        </p>
+        {s.caption && <div class="mt-2 text-[10px] font-mono text-accent opacity-70">{s.caption}</div>}
+      </figcaption>
+    </figure>
+  ))}
+</div>

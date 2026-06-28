@@ -1,0 +1,75 @@
+[
+  {
+    "id": "total_catch",
+    "query": {
+      "en": "What is the total catch vs target for the current period?",
+      "ru": "Какой общий вылов относительно плана за текущий период?"
+    },
+    "sql": "SELECT SUM(qty_t) as total FROM catch WHERE species = 'минтай'",
+    "answer": {
+      "en": "Total catch is 40.0 tons, reaching 85% of the target.",
+      "ru": "Общий вылов составил 40.0 тонн, что составляет 85% от плана."
+    },
+    "visualization": "stat_card",
+    "value": "40.0 t"
+  },
+  {
+    "id": "semantic_pollock",
+    "query": {
+      "en": "Analyze species diversity in current haul",
+      "ru": "Проанализировать видовое разнообразие в текущем вылове"
+    },
+    "sql": "SELECT name FROM name_embeddings WHERE kind = 'species' ORDER BY cosine(vec, [1.0, 0.0]) DESC LIMIT 1",
+    "answer": {
+      "en": "Primary species identified: Pollock (High confidence semantic match).",
+      "ru": "Основной вид определен: минтай (высокая точность семантического соответствия)."
+    },
+    "visualization": "list",
+    "value": {
+      "en": ["pollock"],
+      "ru": ["минтай"]
+    }
+  },
+  {
+    "id": "supply_summary",
+    "query": {
+      "en": "Forecast port logistics for pollock arrivals",
+      "ru": "Прогноз портовой логистики по приходам минтая"
+    },
+    "sql": "SELECT 'catch', SUM(qty_t) FROM catch WHERE species = 'минтай' UNION ALL SELECT 'onboard', SUM(onboard) FROM product_onboard WHERE species = 'минтай'",
+    "answer": {
+      "en": "Critical: 500t onboard, 40t caught today. Priority arrival: TR1 (Dalian).",
+      "ru": "Критически: 500т на борту, 40т выловлено сегодня. Приоритетный приход: ТР1 (Далянь)."
+    },
+    "visualization": "summary_table",
+    "value": {
+      "en": {
+        "catch": "40 t",
+        "onboard": "500 t",
+        "arrivals": "TR1 (Dalian)"
+      },
+      "ru": {
+        "catch": "40 т",
+        "onboard": "500 т",
+        "arrivals": "ТР1 (Далянь)"
+      }
+    }
+  },
+  {
+    "id": "zone_search",
+    "query": {
+      "en": "Check operational capacity in Zone Z",
+      "ru": "Проверить операционную мощность в зоне Z"
+    },
+    "sql": "SELECT DISTINCT vessel FROM catch WHERE zone = 'z'",
+    "answer": {
+      "en": "Vessel LOVETS is active. Capacity at 60% for this sector.",
+      "ru": "Судно ЛОВЕЦ активно. Мощность в этом секторе — 60%."
+    },
+    "visualization": "list",
+    "value": {
+      "en": ["LOVETS"],
+      "ru": ["ЛОВЕЦ"]
+    }
+  }
+]
