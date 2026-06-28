@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Эдуард Дубницкий — ML-инженер · CV</title>
+<style>
+  @page {
+    size: A4;
+    margin: 18mm 16mm;
+  }
+  html, body {
+    font-family: "Helvetica Neue", "Segoe UI", Arial, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.45;
+    color: #1a1a1a;
+  }
+  body { margin: 0; }
+  h1 {
+    font-size: 24pt;
+    font-weight: 700;
+    margin: 0 0 6pt 0;
+    letter-spacing: -0.3pt;
+  }
+  h2 {
+    font-size: 13pt;
+    font-weight: 700;
+    margin: 14pt 0 6pt 0;
+    padding-bottom: 3pt;
+    border-bottom: 0.6pt solid #d0d0d0;
+  }
+  h3 {
+    font-size: 11pt;
+    font-weight: 700;
+    margin: 10pt 0 2pt 0;
+  }
+  .meta {
+    font-size: 9.5pt;
+    color: #555;
+    margin: 0 0 2pt 0;
+  }
+  .role-line {
+    font-size: 10.5pt;
+    color: #444;
+    margin: 0 0 10pt 0;
+  }
+  .period {
+    font-size: 9.5pt;
+    color: #666;
+    margin: 0 0 4pt 0;
+  }
+  .summary {
+    margin: 4pt 0 4pt 0;
+    color: #333;
+  }
+  ul {
+    margin: 4pt 0 6pt 0;
+    padding-left: 16pt;
+  }
+  li {
+    margin: 1.5pt 0;
+  }
+  .stack {
+    font-size: 9.5pt;
+    color: #444;
+    margin: 4pt 0 8pt 0;
+  }
+  .stack b { color: #1a1a1a; }
+  .competencies p {
+    margin: 3pt 0;
+  }
+  .competencies b {
+    color: #1a1a1a;
+  }
+  .header-block {
+    margin-bottom: 6pt;
+  }
+  .job {
+    page-break-inside: avoid;
+    margin-bottom: 4pt;
+  }
+  a { color: #1a1a1a; text-decoration: none; }
+  .divider {
+    border: none;
+    border-top: 0.6pt solid #d0d0d0;
+    margin: 8pt 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="header-block">
+  <h1>Эдуард Дубницкий</h1>
+  <p class="role-line"><b>ML-инженер</b> · Backend &amp; Data · 12+ лет</p>
+  <p class="summary">Fullstack-разработчик с 12+ годами опыта, последние годы — production AI: LLM-пайплайны, RAG, компьютерное зрение, NLP. Обучение и применение нейросетевых моделей (PyTorch, Transformers), интеграция LLM. Сильный бэкграунд в визуализации данных и SQL-аналитике.</p>
+  <p class="meta">
+    <a href="mailto:dubnitsky@gmail.com">dubnitsky@gmail.com</a> ·
+    Telegram <a href="https://t.me/edubnitsky">@edubnitsky</a> ·
+    GitHub <a href="https://github.com/thelonius">thelonius</a>
+  </p>
+  <p class="meta">Москва · Удалённая работа · Английский C1 · Русский — родной</p>
+</div>
+
+<h2>Желаемая должность</h2>
+<p><b>ML-инженер</b> — production RAG, компьютерное зрение, LLM-пайплайны с несколькими провайдерами.</p>
+<p class="meta">Полная занятость, удалённо.</p>
+
+<h2>Ключевые компетенции</h2>
+<div class="competencies">
+  <p><b>ML / AI:</b> PyTorch, TensorFlow, Transformers (HuggingFace), OpenCV, NLP, Computer Vision, LLM-интеграция (GPT-4, Claude, Ollama, Groq, NVIDIA NIM), RAG, Qdrant, эмбеддинги, семантический поиск</p>
+  <p><b>Backend:</b> Python, FastAPI, asyncio, Pydantic, Celery, Flask, Django, Node.js / Express, REST, WebSocket, SSE</p>
+  <p><b>Data:</b> NumPy, Pandas, SciPy, Matplotlib, Plotly, SQL-аналитика, ECharts, Dremio</p>
+  <p><b>Базы данных:</b> PostgreSQL, DuckDB, Redis, MongoDB, SQLite</p>
+  <p><b>Frontend:</b> React, Vue.js, TypeScript, Next.js, Nuxt, Tailwind CSS</p>
+  <p><b>Инфраструктура:</b> Docker, Docker Compose, Ubuntu / Linux, nginx, Caddy, CI/CD, GitHub Actions, Git</p>
+  <p><b>Качество:</b> pytest, mypy, ruff, тестирование LLM-пайплайнов</p>
+</div>
+
+<h2>Опыт работы — 12+ лет</h2>
+
+<div class="job">
+  <h3>Fullstack Developer — ССД Радар (freelance)</h3>
+  <p class="period">Май 2026 — настоящее время · Удалённо</p>
+  <p class="summary"><b>Supply-chain radar дальневосточного рыбопромыслового флота.</b> Аналитика поставок на основе официальных судовых суточных донесений (ССД, формы Ф2.1–Ф2.6): вылов по видам, продукция на бортах, грузы в портах, позиции судов на карте, NL→SQL-запросы на русском.</p>
+  <ul>
+    <li>Разработал бэкенд (FastAPI + DuckDB): OLAP-хранилище, парсер архивов ССД (.zip/.rar), нормализация видов и векторизация продукции</li>
+    <li>Реализовал frontend (Vue 3, Composition API): PrimeVue + Tailwind CSS, ECharts для аналитических графиков (солнечные диаграммы, treemap, дриллдаун)</li>
+    <li>Интегрировал NL→SQL и семантический поиск через переключаемого провайдера (Ollama / OpenAI / NIM)</li>
+    <li>85 тестов (pytest), lint (ruff + mypy), деплой через Docker + Caddy с авто-TLS</li>
+  </ul>
+  <p class="stack"><b>Стек:</b> Python, FastAPI, DuckDB, Vue 3, Pinia, PrimeVue, Tailwind CSS, ECharts, Ollama/OpenAI/NIM, Docker, Caddy</p>
+</div>
+
+<div class="job">
+  <h3>Fullstack / ML Developer — Go-Active (Telegram Mini App)</h3>
+  <p class="period">Апрель 2025 — настоящее время</p>
+  <p class="summary"><b>Платформа визуализации и анализа GPS-маршрутов с ML-аналитикой.</b> Telegram Mini App: загрузка GPS-треков, генерация кинематографических 3D-видео, ML-модуль компьютерного зрения для оценки качества рендера и реконструкции траектории камеры из видео (Structure from Motion).</p>
+  <ul>
+    <li>Реализовал ML-пайплайн: depth estimation (MiDaS/PyTorch), анализ 15+ метрик качества видео, классификация паттернов маршрутов</li>
+    <li>Спроектировал 5-стадийный рендер-пайплайн с мониторингом памяти и управлением Docker-контейнерами</li>
+    <li>Тесты (pytest), strict-типизация (mypy), линтинг (ruff)</li>
+  </ul>
+  <p class="stack"><b>Стек:</b> Python, PyTorch, OpenCV, NumPy/SciPy/Pandas, Pydantic, React, TypeScript, Docker, FFmpeg, CesiumJS</p>
+</div>
+
+<div class="job">
+  <h3>Фронтенд-разработчик — МЦНМО (7.math.ru)</h3>
+  <p class="period">Июнь 2023 — Март 2025 (1 год 10 месяцев) · Москва</p>
+  <ul>
+    <li>Разработал с нуля платформу для редактирования курсов по математике (React, TypeScript, Redux Toolkit, Redux-Saga)</li>
+    <li>Переписал админку публикации материалов</li>
+    <li>Рефакторинг компонентов и обновление React</li>
+  </ul>
+</div>
+
+<div class="job">
+  <h3>Веб-разработчик — Goodt (BI low-code)</h3>
+  <p class="period">Сентябрь 2022 — Май 2023 (9 месяцев)</p>
+  <ul>
+    <li>Витрины данных с интерактивными диаграммами для BI-системы</li>
+    <li>Кастомизируемые виджеты визуализации данных</li>
+    <li>Code review в GitLab</li>
+  </ul>
+  <p class="stack"><b>Стек:</b> Vue 2, ECharts, TypeScript, Dremio, Git</p>
+</div>
+
+<div class="job">
+  <h3>Web-разработчик — MERLION</h3>
+  <p class="period">Август 2018 — Июль 2022 (4 года) · Москва</p>
+  <ul>
+    <li>Внутренний обучающий портал для HR (фронтенд + бэкенд)</li>
+    <li>Миграция на Vuetify, построение новых интерфейсов ЛК</li>
+    <li>Сокращение объёма загружаемых файлов на 50%</li>
+    <li>SQL-эндпоинты на бэкенде для каждого нового интерфейса</li>
+  </ul>
+  <p class="stack"><b>Стек:</b> Vue.js, Nuxt, Vuetify, JavaScript ES6, SQL, Sass, Vite</p>
+</div>
+
+<div class="job">
+  <h3>Web-разработчик — 101XP</h3>
+  <p class="period">Май 2017 — Март 2018 (11 месяцев) · Москва</p>
+  <ul>
+    <li>Кроссбраузерная и адаптивная вёрстка промо-страниц</li>
+    <li>React, Node.js, Docker, Python/Django</li>
+  </ul>
+</div>
+
+<div class="job">
+  <h3>Системный администратор — НП ГЛОНАСС</h3>
+  <p class="period">Февраль 2013 — Сентябрь 2014 (1 год 8 месяцев) · Москва</p>
+  <ul>
+    <li>Внедрение бэкапирования (Symantec), виртуализация (VMware ESX)</li>
+    <li>Администрирование Linux, Mikrotik, PostgreSQL, nginx, Tomcat</li>
+    <li>Мониторинг IT-сервисов 24/7</li>
+  </ul>
+</div>
+
+<h2>Личные проекты</h2>
+
+<div class="job">
+  <h3>Astro-Scheduler — LLM-пайплайн для планирования</h3>
+  <p class="summary">Fullstack-платформа для персонализированного планирования: расчёт 17+ астрономических слоёв данных, LLM-пайплайн для генерации правил, constraint satisfaction solver.</p>
+  <ul>
+    <li>Python/FastAPI API для астрономических вычислений</li>
+    <li>ML feedback loop: система обучается на исходах и корректирует веса рекомендаций</li>
+    <li>GPT-4/Claude для автоматической генерации правил из естественного языка</li>
+  </ul>
+  <p class="stack"><b>Стек:</b> Python, FastAPI, PostgreSQL, React, TypeScript, Docker, OpenAI API</p>
+</div>
+
+<div class="job">
+  <h3>YouTube Voice Actor — AI-система анализа и озвучки</h3>
+  <p class="summary">Telegram-бот и веб-приложение: парсинг YouTube-комментариев, анализ эмоций, синтез речи с клонированием голоса.</p>
+  <ul>
+    <li>NLP-пайплайн: детекция языка (16 языков), анализ эмоций (RoBERTa), классификация тональности</li>
+    <li>Нейросетевой TTS (XTTS v2) с voice cloning и эмоциональной окраской</li>
+    <li>Два интерфейса: Telegram-бот и веб-приложение (FastAPI)</li>
+  </ul>
+  <p class="stack"><b>Стек:</b> Python, FastAPI, PyTorch, Transformers, XTTS, Telegram Bot API</p>
+</div>
+
+<div class="job">
+  <h3>OpenClaw AI Assistant (Cronos)</h3>
+  <p class="summary">Персональный ИИ-ассистент с архитектурой агентов: автоматизация поиска работы, управления задачами, интеграция с сервисами.</p>
+  <ul>
+    <li>Навыки для парсинга вакансий из Telegram-каналов и job-бордов</li>
+    <li>Система heartbeat для периодических проверок без ручного вмешательства</li>
+    <li>Markdown-база знаний для долгосрочного контекста</li>
+  </ul>
+  <p class="stack"><b>Стек:</b> Python, Telegram API, Git, Docker</p>
+</div>
+
+<h2>Образование</h2>
+<p><b>Московский открытый университет им. В.С. Черномырдина</b> — 2008<br>
+Прикладная математика и информатика · Специализация: Глобальные информационные системы управления</p>
+
+<h2>Языки и прочее</h2>
+<p><b>Языки:</b> Русский — родной; Английский — C1 (свободный устный и письменный)</p>
+<p><b>Водительские права:</b> A, B</p>
+
+</body>
+</html>
